@@ -1,0 +1,578 @@
+# Project Overview
+
+This project is a web application that allows users to watch multiple Twitch Streams at a time by providing a
+good UI for managing multiple streams. It is intended to be used on both a desktop and mobile devices.
+
+
+# T3 Stack Project - Cursor Rules
+
+This project is built with the T3 Stack (Next.js + TypeScript + Tailwind + tRPC + Prisma).
+Documentation: https://create.t3.gg/en/usage/next-js
+
+## Core Principles
+
+- **Simplicity over complexity**: Always choose the simpler solution when possible
+- **Maintainability**: Write code that future developers (including yourself) can easily understand and modify
+- **Clean code**: Follow established patterns and conventions
+- **Type safety**: Leverage TypeScript to its fullest extent
+- **Componentisation**: Always break down the react code into small, reusable components
+
+## Project Structure
+
+```
+src/
+├── app/                    # Next.js App Router pages and layouts
+│   ├── api/               # API routes
+│   ├── _components/       # App-specific components
+│   ├── layout.tsx         # Root layout
+│   └── page.tsx           # Pages
+├── server/                # Server-side code (tRPC routers, auth, etc.)
+├── trpc/                  # tRPC client configuration
+├── styles/                # Global styles and Tailwind imports
+└── env.js                 # Environment variable validation
+```
+
+## Technology Stack
+
+- **Framework**: Next.js 15 with App Router
+- **Language**: TypeScript (strict mode)
+- **Styling**: Tailwind CSS v4
+- **API**: tRPC for type-safe APIs
+- **Database**: Prisma ORM with MySQL
+- **State Management**: TanStack Query (React Query)
+- **Validation**: Zod schemas
+- **Linting**: ESLint + Prettier
+
+## Code Style Guidelines
+
+### General Principles
+
+1. **Prefer composition over inheritance**
+2. **Use descriptive variable and function names**
+3. **Keep functions small and focused (single responsibility)**
+4. **Minimize dependencies between modules**
+5. **Write self-documenting code - comments explain why, not what**
+
+### TypeScript Best Practices
+
+- Use strict TypeScript configuration
+- Prefer `interface` over `type` for object shapes
+- Use `const assertions` for immutable data
+- Leverage union types and discriminated unions
+- Always type function parameters and return values
+- Use generic types for reusable components/functions
+
+### React/Next.js Guidelines
+
+- **Components**: Use functional components with hooks
+- **File naming**: PascalCase for components, camelCase for utilities
+- **Props**: Always destructure props in function parameters
+- **State**: Use `useState` for local state, React Query for server state
+- **Effects**: Minimize `useEffect` usage, prefer derived state
+- **Layouts**: Utilize Next.js App Router layout patterns
+- **Loading states**: Use Next.js loading.tsx files and Suspense boundaries
+
+### tRPC Best Practices
+
+- **Routers**: Keep routers focused and organized by feature
+- **Procedures**: Use descriptive names that indicate the action
+- **Input validation**: Always use Zod schemas for input validation
+- **Error handling**: Use tRPC's built-in error handling patterns
+- **Type safety**: Leverage tRPC's end-to-end type safety
+
+### Database & Prisma
+
+- **Schema**: Use descriptive model and field names
+- **Relations**: Properly define relationships between models
+- **Queries**: Use Prisma's type-safe query methods
+- **Migrations**: Write clear migration names and always review generated SQL
+- **Seeding**: Keep seed data simple and focused
+
+### Styling with Tailwind
+
+- **Utility-first**: Use Tailwind utilities over custom CSS when possible
+- **Component classes**: Extract repeated patterns into component classes
+- **Responsive design**: Mobile-first approach with responsive utilities
+- **Consistency**: Use design tokens and maintain visual consistency
+- **Performance**: Purge unused styles in production
+
+## File Organization
+
+### Component Structure
+```typescript
+// Good: Clear component structure
+interface ButtonProps {
+  variant: 'primary' | 'secondary';
+  children: React.ReactNode;
+  onClick?: () => void;
+}
+
+export function Button({ variant, children, onClick }: ButtonProps) {
+  return (
+    <button
+      className={cn(
+        'rounded px-4 py-2 font-medium transition-colors',
+        variant === 'primary' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-900'
+      )}
+      onClick={onClick}
+    >
+      {children}
+    </button>
+  );
+}
+```
+
+### tRPC Router Structure
+```typescript
+// Good: Well-organized router
+export const postRouter = createTRPCRouter({
+  getAll: publicProcedure
+    .input(z.object({
+      limit: z.number().min(1).max(100).default(10),
+    }))
+    .query(async ({ input, ctx }) => {
+      return ctx.db.post.findMany({
+        take: input.limit,
+        orderBy: { createdAt: 'desc' },
+      });
+    }),
+
+  create: protectedProcedure
+    .input(z.object({
+      title: z.string().min(1),
+      content: z.string(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      return ctx.db.post.create({
+        data: {
+          ...input,
+          createdById: ctx.session.user.id,
+        },
+      });
+    }),
+});
+```
+
+## Common Patterns
+
+### Error Handling
+- Use tRPC's built-in error types
+- Provide meaningful error messages
+- Handle errors gracefully in the UI
+- Use error boundaries for unexpected errors
+
+### Loading States
+- Use React Query's loading states
+- Implement skeleton screens for better UX
+- Show loading indicators for slow operations
+- Use optimistic updates where appropriate
+
+### Form Handling
+- Use controlled components with React Hook Form
+- Validate with Zod schemas
+- Provide clear validation error messages
+- Handle form submission errors gracefully
+
+## Performance Considerations
+
+- **Code splitting**: Use dynamic imports for large components
+- **Image optimization**: Use Next.js Image component
+- **Bundle analysis**: Regularly check bundle size
+- **Database queries**: Optimize N+1 queries and use appropriate indexes
+- **Caching**: Leverage React Query caching and Next.js caching strategies
+
+## Testing Guidelines
+
+- Write tests for business logic and utilities
+- Use React Testing Library for component tests
+- Test tRPC procedures in isolation
+- Mock external dependencies appropriately
+- Focus on testing behavior, not implementation details
+
+## Security Best Practices
+
+- Validate all inputs on both client and server
+- Use environment variables for sensitive data
+- Implement proper authentication and authorization
+- Sanitize user inputs to prevent XSS
+- Use HTTPS in production
+
+## Deployment
+
+- Use environment-specific configurations
+- Run type checking and linting in CI/CD
+- Test database migrations before deployment
+- Monitor application performance and errors
+- Use proper logging for debugging
+
+## When Working on This Codebase
+
+1. **Follow the existing patterns** - Don't introduce new patterns without good reason
+2. **Keep it simple** - If there's a simpler way to accomplish the same thing, choose it
+3. **Test your changes** - Run `npm run check` before committing
+4. **Update types** - If you change the database schema, regenerate Prisma types
+5. **Document complex logic** - Add comments for non-obvious business logic
+6. **Consider performance** - Be mindful of database queries and bundle size
+
+Remember: The best code is code that other developers can easily read, understand, and modify. Always prioritize clarity over cleverness. 
+
+## Twitch Embedding Documentation
+Since this project uses Twitch embedding, you can use the following documentation to help you:
+
+For Chat: https://dev.twitch.tv/docs/embed/chat/
+
+Embedding Chat
+Reviews for chatbot verification continue to be temporarily paused while we revise our processes. Reviews for Extensions, developer organizations, and game ownership have resumed. Thank you for your patience and understanding.
+
+Usage
+Use the following HTML template to embed a Twitch chat window on your website. The parameters to configure the chat window are described below.
+
+<iframe src="https://www.twitch.tv/embed/<channel>/chat?parent=<parent>"
+        height="<height>"
+        width="<width>">
+</iframe>
+Parameters
+Name	Required	Description
+src	Yes	Chat embed URL. This defines which channel’s chat should be shown and the domain(s) where the embed is being placed.
+
+channel: The channel name.
+parent: Domain(s) that will be embedding Twitch. Multiple parent parameters can be defined in the URL. A parent parameter is needed for each domain your site is hosted or embedded on.
+height	No	Height of the chat window. This can be defined in pixels or as a percentage (e.g. 500 or 50%).
+width	No	Width of the chat window. This can be defined in pixels or as a percentage (e.g. 500 or 50%).
+sandbox	No	If specified, the following keywords must be included to ensure all Twitch features will function as expected: allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-modals
+Example
+This example demonstrates how the chat for the TwitchDev channel can be embedded on this particular site.
+
+Source Code
+<iframe id="twitch-chat-embed"
+        src="https://www.twitch.tv/embed/twitchdev/chat?parent=dev.twitch.tv"
+        height="500"
+        width="350">
+</iframe>
+
+--------------------------------
+For Video: https://dev.twitch.tv/docs/embed/video-and-clips/
+
+
+Embedding Video and Clips
+You can embed live streams, video on demand (VOD), and clips in a website. Embedded video windows must be at least 400x300 pixels.
+
+There are three types of VODs:
+
+Past broadcasts are created automatically from a live stream.
+Highlights can be created by broadcasters from past broadcasts.
+Uploads are external videos that are added to Twitch using the Video Uploads API or the Video Manager.
+This guide discusses three techniques for embedding video and clips
+
+Embedding live streams and VODs in a non-interactive frame.
+Embedding live streams and VODs in an interactive iframe.
+Embedding clips in a non-interactive frame.
+For more information, see Video on Demand and How to Use Clips .
+
+Non-Interactive Inline Frames for Live Streams and VODs
+<iframe
+    src="https://player.twitch.tv/?<channel, video, or collection>&parent=streamernews.example.com"
+    height="<height>"
+    width="<width>"
+    allowfullscreen>
+</iframe>
+Iframe Attributes
+These attributes are defined in the IFrame element. The Twitch player can not set or modify them.
+
+Name	Type	Description
+allowfullscreen	boolean	A boolean attribute set by inclusion. In other words, including the attribute enables fullscreen viewing while excluding the attribute ensures fullscreen viewing is not allowed.
+height	number or string	Height of the embedded window, in pixels. This can be expressed as a percentage, by passing a string like 100%. Recommended minimum: 300
+parent	string	(required) Domain(s) that will be embedding Twitch. You must have one parent key for each domain your site uses.
+src	string	The iframe src URL string should be https://player.twitch.tv/ with one of these required query string parameters:
+
+channel – (string) Name of the channel, for a live stream.
+
+video – (string) Video ID (for past broadcasts, highlights, and video uploads). In this context (the video player), the video ID must have a “v” prefix.
+
+collection - (string) Collection ID, for a collection of videos.
+
+If both video and collection are specified, the specified collection starts playing from the specified video. If the video is not in the collection, collection is ignored and the specified video is played.
+
+If channel is specified along with video and/or collection, only channel is used.
+width	number or string	Width of the embedded window, in pixels. This can be expressed as a percentage, by passing a string like 50%. Recommended minimum: 400
+Optional Query String Parameters on Iframe src
+Name	Type	Description
+autoplay	boolean	If true, the video starts playing automatically, without the user clicking play. The exception is mobile devices, on which video cannot be played without user interaction. Default: true.
+muted	boolean	Specifies whether the initial state of the video is muted. Default: false.
+time	1h2m3s	Time in the video where playback starts. Specifies hours, minutes, and seconds. Default: 0h0m0s (the start of the video).
+Video Metadata
+Video information such as duration, view count, and associated Twitch channel is available via the Get Videos API endpoint.
+
+Examples
+Using a channel name:
+
+<iframe
+    src="https://player.twitch.tv/?channel=dallas&parent=streamernews.example.com&muted=true"
+    height="720"
+    width="1280"
+    allowfullscreen>
+</iframe>
+Using a video ID:
+
+<iframe
+    src="https://player.twitch.tv/?video=v40464143&parent=streamernews.example.com&autoplay=false"
+    height="720"
+    width="1280"
+    allowfullscreen>
+</iframe>
+Using a collection ID:
+
+<iframe
+    src="https://player.twitch.tv/?collection=abcDeF1ghIJ2kL&parent=streamernews.example.com"
+    height="720"
+    width="1280"
+    allowfullscreen>
+</iframe>
+Interactive Frames for Live Streams and VODs
+<script src= "https://player.twitch.tv/js/embed/v1.js"></script>
+<div id="<player div ID>"></div>
+<script type="text/javascript">
+  var options = {
+    width: <width>,
+    height: <height>,
+    channel: "<channel ID>",
+    video: "<video ID>",
+    collection: "<collection ID>",
+    // only needed if your site is also embedded on embed.example.com and othersite.example.com
+    parent: ["embed.example.com", "othersite.example.com"]
+  };
+  var player = new Twitch.Player("<player div ID>", options);
+  player.setVolume(0.5);
+</script>
+Required Parameters
+Name	Type	Description
+channel
+– OR –
+video
+– OR –
+collection	string	Channel name (for a live stream), video ID, or collection ID. (To change the channel or video later, use setChannel, setVideo, or setCollection; see Synchronous Playback Controls.)
+
+If both video and collection are specified, the specified collection starts playing from the specified video. If the video is not in the collection, collection is ignored and the specified video is played.
+
+If channel is specified along with video and/or collection, only channel is used.
+height	number or string	Height of the embedded window, in pixels. Can be expressed as a percentage, by passing a string like 100%. Recommended minimum: 300.
+parent	string[]	Only required if your site is embedded on any domain(s) other than the one that instantiates the Twitch embed. Example parent parameter: ["streamernews.example.com", "embed.example.com"]
+player div ID	string	Any value you like, as long as it is the same in both locations within the example.
+width	number or string	Width of the embedded window, in pixels. Can be expressed as a percentage, by passing a string like 50%. Recommended minimum: 400.
+Optional Parameters
+Name	Type	Description
+autoplay	boolean	If true, the video starts playing automatically, without the user clicking play. The exception is mobile devices, on which video cannot be played without user interaction. Default: true.
+muted	boolean	Specifies whether the initial state of the video is muted. Default: false.
+time	string	Only valid for Video on Demand content. Time in the video where playback starts. Specifies hours, minutes, and seconds. Default: 0h0m0s (the start of the video).
+Synchronous JavaScript Playback API
+Call	Description
+disableCaptions():void	Disables display of Closed Captions.
+enableCaptions():void	Enables display of Closed Captions. Note captions will only display if they are included in the video content being played. See the CAPTIONS JavaScript Event for more info.
+pause():void	Pauses the player.
+play():void	Begins playing the specified video.
+seek(timestamp:Float):void	Seeks to the specified timestamp (in seconds) in the video. Does not work for live streams.
+setChannel(channel:String):void	Sets the channel to be played.
+setCollection(collection ID:String, video ID:String):void	Sets the collection to be played.
+
+Optionally also specifies the video within the collection, from which to start playback. If a video ID is not provided here or the specified video is not part of the collection, playback starts with the first video in the collection.
+setQuality(quality:String):void	Sets the quality of the video. quality should be a string value returned by getQualities.
+setVideo(video ID:String, timestamp:Number):void	Sets the video to be played to be played and starts playback at timestamp (in seconds).
+Synchronous JavaScript Volume API
+Call	Description
+getMuted():Boolean	Returns true if the player is muted; otherwise, false.
+setMuted(muted:Boolean):void	If true, mutes the player; otherwise, unmutes it. This is independent of the volume setting.
+getVolume():Float	Returns the volume level, a value between 0.0 and 1.0.
+setVolume(volumelevel:Float):void	Sets the volume to the specified volume level, a value between 0.0 and 1.0.
+Synchronous JavaScript Status API
+Call	Description
+getPlaybackStats():PlaybackStats	Returns an object with statistics on the embedded video player and the current live stream or VOD. See below for more info.
+getChannel():String	Returns the channel’s name. Works only for live streams, not VODs.
+getCurrentTime():Float	Returns the current video’s timestamp, in seconds. Works only for VODs, not live streams.
+getDuration():Float	Returns the duration of the video, in seconds. Works only for VODs,not live streams.
+getEnded():Boolean	Returns true if the live stream or VOD has ended; otherwise, false.
+getQualities():String[]	Returns the available video qualities. For example, chunked (pass-through of the original source).
+getQuality():String	Returns the current quality of video playback.
+getVideo():String	Returns the video ID. Works only for VODs, not live streams.
+isPaused():Boolean	Returns true if the video is paused; otherwise, false. Buffering or seeking is considered playing.
+PlaybackStats Object attributes
+Name	Type	Description
+backendVersion	string	The version of the Twitch video player backend.
+bufferSize	number	The size of the video buffer in seconds.
+codecs	string	Codecs currently in use, comma-separated (video,audio).
+displayResolution	string	The current size of the video player element (eg. 850x480).
+fps	number	The video playback rate in frames per second. Not available on all browsers.
+hlsLatencyBroadcaster	number	Current latency to the broadcaster in seconds. Only available for live content.
+playbackRate	number	The playback bitrate in Kbps.
+skippedFrames	number	The number of dropped frames.
+videoResolution	string	The native resolution of the current video (eg. 640x480).
+JavaScript Events
+To listen to events, call addEventListener(event:String, callback:Function).
+
+Event	Emitted when …
+Twitch.Player.CAPTIONS	Closed captions are found in the video content being played. This event will be emitted once for each new batch of captions, in sync with the corresponding video content. The event payload is a string containing the caption content.
+Twitch.Player.ENDED	Video or stream ends.
+Twitch.Player.PAUSE	Player is paused. Buffering and seeking is not considered paused.
+Twitch.Player.PLAY	Player just unpaused, will either start video playback or start buffering.
+Twitch.Player.PLAYBACK_BLOCKED	Player playback was blocked. Usually fired after an unmuted autoplay or unmuted programmatic call on play().
+Twitch.Player.PLAYING	Player started video playback.
+Twitch.Player.OFFLINE	Loaded channel goes offline.
+Twitch.Player.ONLINE	Loaded channel goes online.
+Twitch.Player.READY	Player is ready to accept function calls.
+Twitch.Player.SEEK	User has used the player controls to seek a VOD, the seek() method has been called, or live playback has seeked to sync up after being paused.
+Example
+<script src= "https://player.twitch.tv/js/embed/v1.js"></script>
+<div id="SamplePlayerDivID"></div>
+<script type="text/javascript">
+  var options = {
+    width: 854,
+    height: 480,
+    channel: "twitchdev",
+    // Only needed if this page is going to be embedded on other websites
+    parent: ["embed.example.com", "othersite.example.com"]
+  };
+  var player = new Twitch.Player("SamplePlayerDivID", options);
+  player.setVolume(0.5);
+</script>
+Non-Interactive IFrames for Clips
+Embedding a Clip is different than embedding a live stream or VOD. The embedded Clips player uses a different set of query parameters and does not support the JavaScript interactive embed.
+
+IFrame Prototype
+
+<iframe
+    src="https://clips.twitch.tv/embed?clip=<slug>&parent=streamernews.example.com"
+    height="<height>"
+    width="<width>"
+    allowfullscreen>
+</iframe>
+Iframe Attributes
+Name	Type	Description
+allowfullscreen	boolean	A boolean attribute set by inclusion. In other words, including the attribute enables fullscreen viewing while excluding the attribute ensures fullscreen viewing is not allowed.
+clip	string	A globally unique string called a slug, by which clips are referenced.
+height	number or string	Height of the embedded window, in pixels. This can be expressed as a percentage, by passing a string like 50%. Recommended minimum: 300.
+parent	string	(required) Domain(s) that will be embedding Twitch. You must have one parent key for each domain your site uses.
+preload	enum	A hint to the browser about what the developer thinks will lead to the best user experience. Valid values:
+
+none - The video should not be preloaded.
+
+metadata - Only video metadata (e.g., length) is fetched. This is the recommended value.
+
+auto - The whole video file could be downloaded, even if the user is not expected to use it.
+
+"" (empty string) - Same as auto.
+
+Default: browser-defined.
+
+The HTML specification does not force the browser to follow the value of this attribute; it is merely a hint.
+width	number or string	Width of the embedded window, in pixels. This can be expressed as a percentage, by passing a string like 50%. Recommended minimum: 400.
+Optional IFrame Query Parameters
+Name	Type	Description
+autoplay	boolean	If true, the video starts playing automatically, without the user clicking play. The exception is mobile devices, on which video cannot be played without user interaction. Default: false.
+muted	boolean	Specifies whether the initial state of the video is muted. Default: false.
+Example
+<iframe
+   src="https://clips.twitch.tv/embed?clip=IncredulousAbstemiousFennelImGlitch&parent=streamernews.example.com&parent=embed.example.com"
+   height="360"
+   width="640"
+   allowfullscreen>
+</iframe>
+
+--------------------------------
+
+For everything: https://dev.twitch.tv/docs/embed/everything/
+
+Embedding Everything
+This guide explains how to embed video-on-demand content or live video with Twitch Chat on your website.
+
+Authentication
+Users of embedded Twitch are authenticated in the same way as the Twitch website and logging in is a seamless, lightweight experience. Logged-in users can chat, follow a channel, or subscribe to a channel. If a user attempts to perform one of these actions while not logged in, they will be prompted to log in or create a Twitch account.
+
+Overlays
+The Twitch embed contains buttons for Sign In, Follow, and Subscribe, in an overlay above the player.
+
+In some cases, clicking a button opens a pop-up window that allows the user to complete the desired action (for example, navigate through the payment flow or create an account). In others, it automatically goes through with the action (such as Following).
+
+The name of the channel being watched is an overlay that appears when you hover your mouse over the player. On embeds, these titles do not link back to Twitch.
+
+Usage
+Add a placeholder element with a unique ID to your page, where you want the Twitch embed to be displayed.
+Load the Twitch embed JavaScript file.
+Initialize a Twitch.Embed object, with the placeholder element ID and options. If your site will be embedded on other domains, you must include them as a JavaScript array of strings under the parent key.
+<html>
+  <body>
+    <!-- Add a placeholder for the Twitch embed -->
+    <div id="twitch-embed"></div>
+
+    <!-- Load the Twitch embed JavaScript file -->
+    <script src="https://embed.twitch.tv/embed/v1.js"></script>
+
+    <!-- Create a Twitch.Embed object that will render within the "twitch-embed" element -->
+    <script type="text/javascript">
+      new Twitch.Embed("twitch-embed", {
+        width: 854,
+        height: 480,
+        channel: "monstercat",
+        // Only needed if this page is going to be embedded on other websites
+        parent: ["embed.example.com", "othersite.example.com"]
+      });
+    </script>
+  </body>
+</html>
+Embed Parameters
+Option	Type	Description
+allowfullscreen	boolean	If true, the player can go full screen. Default: true.
+autoplay	boolean	If true, the video starts playing automatically, without the user clicking play. The exception is mobile devices, on which video cannot be played without user interaction. Default: true.
+channel	string	Name of the chat room and channel (live content only).
+collection	string	The VOD collection to play. If you use this, you may also specify an initial video in the VOD collection, otherwise playback will begin with the first video in the collection. All VODs are auto-played. Chat replay is not supported. Example parameters object:
+{ video: "124085610", collection: "GMEgKwTQpRQwyA" }
+height	number or string	Height of the rendered element, in pixels. This can be expressed as a percentage, by passing a string like 50%. Minimum: 400. Default: 480.
+layout	string	Determines the screen layout. Valid values:<ul><li>video-with-chat: Default if channel is provided, and only supported for live content. Shows both video and chat side-by-side. At narrow sizes, chat renders under the video player.</li><li>video: Default if channel is not provided. Shows only the video player (omits chat).</li></ul>
+muted	boolean	Specifies whether the initial state of the video is muted. Default: false.
+parent	string[]	Required if your site is embedded on any domain(s) other than the one that instantiates the Twitch embed.Example parent parameter: ["streamernews.example.com", "embed.example.com"].
+theme	string	The Twitch embed color theme to use. Valid values: light or dark. Default: dark.
+time	string	Time in the video where playback starts. Specifies hours, minutes, and seconds. Default: 0h0m0s (the start of the video).
+video	string	ID of a VOD to play. Chat replay is not supported.
+width	number or string	Maximum width of the rendered element, in pixels. This can be expressed as a percentage, by passing a string like 100%. Minimum: 340. Default: 940.
+Working with Events
+To listen to events, create a Twitch.Embed object, then call the addEventListener method on that object:
+
+var embed = new Twitch.Embed('twitch-embed', {
+  channel: 'monstercat'
+});
+
+embed.addEventListener(Twitch.Embed.VIDEO_READY, function() {
+  console.log('The video is ready');
+});
+Available Events
+Event	Description
+Twitch.Embed.VIDEO_PLAY	The video started playing. This callback receives an object with a sessionId property.
+Twitch.Embed.VIDEO_READY	The video player is ready for API commands.
+Programmatic Access
+To provide additional functionality to our API, access specific components with getPlayer(), which retrieves the current video player instance from the embed and provides full programmatic access to the video player API.
+
+<html>
+  <body>
+    <!-- Add a placeholder for the Twitch embed -->
+    <div id="twitch-embed"></div>
+
+    <!-- Load the Twitch embed script -->
+    <script src="https://embed.twitch.tv/embed/v1.js"></script>
+
+    <!-- Create a Twitch.Embed object that will render within the "twitch-embed" element. -->
+    <script type="text/javascript">
+      var embed = new Twitch.Embed("twitch-embed", {
+        width: 854,
+        height: 480,
+        channel: "monstercat",
+        layout: "video",
+        autoplay: false,
+        // Only needed if this page is going to be embedded on other websites
+        parent: ["embed.example.com", "othersite.example.com"]
+      });
+
+      embed.addEventListener(Twitch.Embed.VIDEO_READY, () => {
+        var player = embed.getPlayer();
+        player.play();
+      });
+    </script>
+  </body>
+</html>
