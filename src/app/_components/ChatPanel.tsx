@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import type { StreamConfig } from "./MultiTwitchViewer";
+import { useTheme } from "~/contexts/ThemeContext";
 
 interface ChatPanelProps {
   streams: StreamConfig[];
@@ -9,6 +10,7 @@ interface ChatPanelProps {
   onStreamChange: (username: string) => void;
   width: number;
   onWidthChange: (width: number) => void;
+  isMobile?: boolean;
 }
 
 export function ChatPanel({ 
@@ -16,8 +18,10 @@ export function ChatPanel({
   activeStreamUsername, 
   onStreamChange, 
   width, 
-  onWidthChange 
+  onWidthChange,
+  isMobile = false
 }: ChatPanelProps) {
+  const { themeMatch } = useTheme();
   const chatRef = useRef<HTMLIFrameElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const resizeHandleRef = useRef<HTMLDivElement>(null);
@@ -38,8 +42,6 @@ export function ChatPanel({
   const toggleChatCollapse = useCallback(() => {
     setIsChatCollapsed(prev => !prev);
   }, []);
-
-
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -102,48 +104,102 @@ export function ChatPanel({
     return (
       <div 
         ref={containerRef}
-        className="h-full flex items-center justify-center bg-gradient-to-b from-slate-950/90 via-slate-900/95 to-slate-950/90 backdrop-blur-xl border-l border-slate-700/30 shadow-2xl"
-        style={{ width: `${width}px` }}
+        className={`h-full flex items-center justify-center glass-theme shadow-2xl ${
+          isMobile 
+            ? "w-full border-t"
+            : "border-l"
+        }`}
+        style={{ 
+          width: isMobile ? '100%' : `${width}px`,
+          borderColor: 'color-mix(in srgb, var(--theme-primary) 20%, transparent)'
+        }}
       >
         <div className="text-center space-y-4">
-          <div className="w-16 h-16 mx-auto rounded-2xl bg-slate-800/80 border border-slate-700/60 flex items-center justify-center backdrop-blur-sm shadow-xl">
+          <div 
+            className="w-16 h-16 mx-auto rounded-2xl glass-theme flex items-center justify-center shadow-xl"
+            style={{
+              backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)',
+              borderColor: 'color-mix(in srgb, var(--theme-primary) 20%, transparent)'
+            }}
+          >
             <svg className="w-8 h-8 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
           </div>
           <p className="text-slate-400 text-sm font-semibold">No chat available</p>
-          <div className="w-2 h-2 bg-violet-400 rounded-full animate-pulse mx-auto"></div>
+          <div className="w-2 h-2 bg-theme-primary rounded-full animate-pulse mx-auto"></div>
         </div>
       </div>
     );
   }
 
-
-
   return (
     <div 
       ref={containerRef}
-      className="h-full flex bg-gradient-to-b from-slate-950/90 via-slate-900/95 to-slate-950/90 backdrop-blur-xl border-l border-slate-700/30 relative shadow-2xl"
+      className={`h-full flex relative shadow-2xl glass-theme ${
+        isMobile 
+          ? "w-full border-t"
+          : "border-l"
+      } ${isChatCollapsed ? 'w-12' : ''}`}
       style={{ 
-        width: isChatCollapsed ? '48px' : `${width}px`,
-        transition: isResizing ? 'none' : 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+        width: isMobile ? '100%' : (isChatCollapsed ? '48px' : `${width}px`),
+        transition: isResizing || isMobile ? 'none' : 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+        borderColor: 'color-mix(in srgb, var(--theme-primary) 20%, transparent)',
+        boxShadow: `0 25px 50px -12px color-mix(in srgb, var(--theme-primary) 10%, transparent)`
       }}
     >
-      {/* Resize Handle - Only show when chat is expanded */}
-      {!isChatCollapsed && (
+      {/* Resize Handle - Only show on desktop when chat is expanded */}
+      {!isMobile && !isChatCollapsed && (
         <div
           ref={resizeHandleRef}
-          className={`absolute -left-3 top-0 bottom-0 w-6 cursor-ew-resize group z-10 transition-all duration-300 ease-out ${
-            isResizing ? 'bg-violet-500/15' : 'bg-transparent hover:bg-violet-500/10'
+          className={`absolute -left-3 top-0 bottom-0 w-6 cursor-ew-resize group z-100 transition-all duration-300 ease-out ${
+            isResizing ? '' : 'bg-transparent'
           }`}
+          style={{
+            backgroundColor: isResizing 
+              ? 'color-mix(in srgb, var(--theme-primary) 15%, transparent)' 
+              : undefined
+          }}
           onMouseDown={handleMouseDown}
+          onMouseEnter={() => {
+            if (!isResizing) {
+              (resizeHandleRef.current as any).style.backgroundColor = 'color-mix(in srgb, var(--theme-primary) 10%, transparent)';
+            }
+          }}
+          onMouseLeave={() => {
+            if (!isResizing) {
+              (resizeHandleRef.current as any).style.backgroundColor = 'transparent';
+            }
+          }}
         >
           {/* Visual indicator for resize handle */}
-          <div className={`absolute left-3 top-1/2 -translate-y-1/2 w-0.5 transition-all duration-300 ease-out rounded-full ${
-            isResizing 
-              ? 'h-24 bg-gradient-to-b from-violet-400 via-purple-400 to-violet-400 shadow-lg shadow-violet-500/30' 
-              : 'h-12 bg-gradient-to-b from-slate-500 to-slate-600 group-hover:h-20 group-hover:from-violet-300 group-hover:to-purple-300 group-hover:shadow-lg group-hover:shadow-violet-500/20'
-          }`} />
+          <div 
+            className={`absolute left-3 top-1/2 -translate-y-1/2 w-0.5 transition-all duration-300 ease-out rounded-full ${
+              isResizing 
+                ? 'h-24' 
+                : 'h-12 group-hover:h-20'
+            }`}
+            style={{
+              background: isResizing 
+                ? `linear-gradient(to bottom, var(--theme-primary), var(--theme-secondary), var(--theme-primary))`
+                : `linear-gradient(to bottom, #64748b, #475569)`,
+              boxShadow: isResizing 
+                ? `0 10px 25px color-mix(in srgb, var(--theme-primary) 30%, transparent)`
+                : undefined
+            }}
+            onMouseEnter={(e) => {
+              if (!isResizing) {
+                e.currentTarget.style.background = `linear-gradient(to bottom, var(--theme-secondary), var(--theme-primary))`;
+                e.currentTarget.style.boxShadow = `0 10px 25px color-mix(in srgb, var(--theme-primary) 20%, transparent)`;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isResizing) {
+                e.currentTarget.style.background = `linear-gradient(to bottom, #64748b, #475569)`;
+                e.currentTarget.style.boxShadow = 'none';
+              }
+            }}
+          />
           
           {/* Grip dots */}
           <div className={`absolute left-2 top-1/2 -translate-y-1/2 flex flex-col gap-1.5 transition-all duration-300 ${
@@ -152,26 +208,41 @@ export function ChatPanel({
             {[...Array(3)].map((_, i) => (
               <div 
                 key={i} 
-                className="w-1.5 h-1.5 bg-violet-300 rounded-full shadow-sm" 
-                style={{ animationDelay: `${i * 100}ms` }}
+                className="w-1.5 h-1.5 rounded-full shadow-sm" 
+                style={{ 
+                  animationDelay: `${i * 100}ms`,
+                  backgroundColor: 'var(--theme-secondary)'
+                }}
               />
             ))}
           </div>
         </div>
       )}
 
-      {/* Collapsed Chat Toggle Button */}
-      {isChatCollapsed && (
+      {/* Collapsed Chat Toggle Button - Desktop only */}
+      {!isMobile && isChatCollapsed && (
         <div className="flex flex-col h-full w-full">
           {/* Top section with expand button */}
           <div className="flex justify-center pt-4 pb-3">
             <button
               onClick={toggleChatCollapse}
-              className="w-8 h-8 rounded-lg bg-purple-600/20 border border-purple-500/30 hover:bg-purple-600/30 hover:border-purple-400/50 transition-all duration-200 group flex items-center justify-center backdrop-blur-sm cursor-pointer hover:cursor-pointer active:cursor-pointer"
+              className="w-8 h-8 rounded-lg glass-theme transition-all duration-200 group flex items-center justify-center cursor-pointer hover:cursor-pointer active:cursor-pointer"
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--theme-primary) 20%, transparent)',
+                borderColor: 'color-mix(in srgb, var(--theme-primary) 30%, transparent)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--theme-primary) 30%, transparent)';
+                e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--theme-primary) 50%, transparent)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--theme-primary) 20%, transparent)';
+                e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--theme-primary) 30%, transparent)';
+              }}
               title="Show chat"
             >
               <svg 
-                className="w-4 h-4 text-purple-400 group-hover:text-purple-300 transition-colors duration-200" 
+                className="w-4 h-4 text-theme-primary group-hover:text-theme-secondary transition-colors duration-200" 
                 fill="none" 
                 stroke="currentColor" 
                 viewBox="0 0 24 24"
@@ -185,137 +256,270 @@ export function ChatPanel({
           <div className="flex flex-col items-center justify-center flex-1 space-y-4">
             {/* Twitch-style chat icon */}
             <div className="w-6 h-6 flex items-center justify-center">
-              <svg className="w-5 h-5 text-purple-400/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-theme-primary opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
             </div>
             
             {/* Vertical "CHAT" text in Twitch style */}
             <div className="transform -rotate-90 origin-center">
-              <span className="text-xs font-bold text-purple-400/60 tracking-[0.2em] uppercase">CHAT</span>
+              <span className="text-xs font-bold text-theme-primary opacity-60 tracking-[0.2em] uppercase">CHAT</span>
             </div>
           </div>
           
           {/* Bottom accent */}
-          <div className="h-1 bg-gradient-to-r from-transparent via-purple-500/30 to-transparent"></div>
+          <div 
+            className="h-1"
+            style={{
+              background: `linear-gradient(to right, transparent, color-mix(in srgb, var(--theme-primary) 30%, transparent), transparent)`
+            }}
+          ></div>
         </div>
       )}
 
       {/* Chat Content */}
       <div 
         className={`flex flex-col flex-1 overflow-hidden transition-opacity duration-300 ${
-          isChatCollapsed ? 'opacity-0' : 'opacity-100'
+          !isMobile && isChatCollapsed ? 'opacity-0' : 'opacity-100'
         }`}
         style={{
-          visibility: isChatCollapsed ? 'hidden' : 'visible',
-          pointerEvents: isChatCollapsed ? 'none' : 'auto'
+          visibility: !isMobile && isChatCollapsed ? 'hidden' : 'visible',
+          pointerEvents: !isMobile && isChatCollapsed ? 'none' : 'auto'
         }}
       >
           {/* Chat Header */}
-          <div className="border-b border-slate-700/40 bg-slate-950/50 backdrop-blur-sm">
+          <div 
+            className="border-b glass-theme"
+            style={{
+              borderColor: 'color-mix(in srgb, var(--theme-primary) 20%, transparent)',
+              backgroundColor: 'color-mix(in srgb, var(--theme-primary) 3%, transparent)'
+            }}
+          >
             {/* Header Title Bar - Always Visible */}
-            <div className="px-2 py-3 flex items-center justify-between">
-              {/* Collapse Chat Button - Left side */}
-              <button
-                onClick={toggleChatCollapse}
-                className="w-8 h-8 rounded-md bg-transparent hover:bg-purple-600/20 transition-all duration-150 group cursor-pointer hover:cursor-pointer active:cursor-pointer flex items-center justify-center"
-                title="Hide chat"
-              >
-                <svg 
-                  className="w-4 h-4 text-slate-400 group-hover:text-purple-300 transition-colors duration-150" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
+            <div className={`${isMobile ? 'px-3 py-2' : 'px-2 py-3'} flex items-center justify-between`}>
+              {/* Collapse Chat Button - Desktop only */}
+              {!isMobile && (
+                <button
+                  onClick={toggleChatCollapse}
+                  className="w-8 h-8 rounded-md bg-transparent transition-all duration-150 group cursor-pointer hover:cursor-pointer active:cursor-pointer flex items-center justify-center"
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--theme-primary) 20%, transparent)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }}
+                  title="Hide chat"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
+                  <svg 
+                    className="w-4 h-4 text-slate-400 group-hover:text-theme-primary transition-colors duration-150" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              )}
 
               {/* Centered Live indicator and title */}
-              <div className="flex items-center gap-3 absolute left-1/2 transform -translate-x-1/2">
+              <div className={`flex items-center gap-3 ${isMobile ? 'mx-auto' : 'absolute left-1/2 transform -translate-x-1/2'}`}>
                 <div className="relative">
-                  <div className="w-2 h-2 bg-gradient-to-r from-violet-400 to-purple-400 rounded-full"></div>
-                  <div className="absolute inset-0 w-2 h-2 bg-gradient-to-r from-violet-400 to-purple-400 rounded-full animate-ping opacity-60"></div>
+                  <div 
+                    className="w-2 h-2 rounded-full"
+                    style={{
+                      background: `linear-gradient(to right, var(--theme-primary), var(--theme-secondary))`
+                    }}
+                  ></div>
+                  <div 
+                    className="absolute inset-0 w-2 h-2 rounded-full animate-ping opacity-60"
+                    style={{
+                      background: `linear-gradient(to right, var(--theme-primary), var(--theme-secondary))`
+                    }}
+                  ></div>
                 </div>
-                <h3 className="text-base font-semibold bg-gradient-to-r from-white to-slate-200 bg-clip-text text-transparent tracking-tight whitespace-nowrap">
+                <h3 className={`${isMobile ? 'text-sm' : 'text-base'} font-semibold bg-gradient-to-r from-white to-slate-200 bg-clip-text text-transparent tracking-tight whitespace-nowrap`}>
                   Stream Chat
                 </h3>
               </div>
               
-              {/* Collapse Header Toggle Button - Right side */}
-              <button
-                onClick={toggleHeaderCollapse}
-                className="w-8 h-8 rounded-md bg-transparent hover:bg-slate-700/30 transition-all duration-150 group cursor-pointer hover:cursor-pointer active:cursor-pointer flex items-center justify-center"
-                title={isHeaderCollapsed ? "Show chat settings" : "Hide chat settings"}
-              >
-                <svg 
-                  className={`w-4 h-4 text-slate-400 group-hover:text-slate-300 transition-all duration-200 ${
-                    isHeaderCollapsed ? 'rotate-180' : 'rotate-0'
-                  }`} 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
+              {/* Collapse Header Toggle Button - Desktop only */}
+              {!isMobile && (
+                <button
+                  onClick={toggleHeaderCollapse}
+                  className="w-8 h-8 rounded-md bg-transparent transition-all duration-150 group cursor-pointer hover:cursor-pointer active:cursor-pointer flex items-center justify-center"
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--theme-primary) 10%, transparent)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }}
+                  title={isHeaderCollapsed ? "Show chat settings" : "Hide chat settings"}
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7 7" />
-                </svg>
-              </button>
+                  <svg 
+                    className={`w-4 h-4 text-slate-400 group-hover:text-theme-primary transition-all duration-200 ${
+                      isHeaderCollapsed ? 'rotate-180' : 'rotate-0'
+                    }`} 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7 7" />
+                  </svg>
+                </button>
+              )}
             </div>
 
-            {/* Collapsible Content */}
-            <div 
-              className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                isHeaderCollapsed ? 'max-h-0 opacity-0' : 'max-h-96 opacity-100'
-              }`}
-            >
-              <div className="px-2 pb-4">
-                {/* Stream selector */}
-                {streams.length > 1 && (
-                  <div className="space-y-2">
-                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                      Active Stream
-                    </label>
-                    <div className="relative mt-2">
-                      <select
-                        value={activeStreamUsername}
-                        onChange={(e) => onStreamChange(e.target.value)}
-                        className="w-full appearance-none bg-slate-800/70 border border-slate-600/60 rounded-xl px-4 py-3.5 text-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-400/50 transition-all duration-300 hover:bg-slate-800/90 hover:border-slate-500/70 cursor-pointer backdrop-blur-sm shadow-lg"
-                      >
-                        {streams.map((stream) => (
-                          <option key={stream.username} value={stream.username} className="bg-slate-800 text-white">
-                            {stream.username}
-                          </option>
-                        ))}
-                      </select>
-                      <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
-                        <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
+            {/* Collapsible Content - Desktop only */}
+            {!isMobile && (
+              <div 
+                className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                  isHeaderCollapsed ? 'max-h-0 opacity-0' : 'max-h-96 opacity-100'
+                }`}
+              >
+                <div className="px-2 pb-4">
+                  {/* Stream selector */}
+                  {streams.length > 1 && (
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                        Active Stream
+                      </label>
+                      <div className="relative mt-2">
+                        <select
+                          value={activeStreamUsername}
+                          onChange={(e) => onStreamChange(e.target.value)}
+                          className="w-full appearance-none glass-theme rounded-xl px-4 py-3.5 text-white text-sm font-medium focus:outline-none transition-all duration-300 cursor-pointer shadow-lg"
+                          style={{
+                            backgroundColor: 'color-mix(in srgb, var(--theme-primary) 8%, #1e293b)',
+                            borderColor: 'color-mix(in srgb, var(--theme-primary) 30%, transparent)'
+                          }}
+                          onFocus={(e) => {
+                            e.currentTarget.style.borderColor = 'var(--theme-primary)';
+                            e.currentTarget.style.boxShadow = `0 0 0 2px color-mix(in srgb, var(--theme-primary) 50%, transparent)`;
+                          }}
+                          onBlur={(e) => {
+                            e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--theme-primary) 30%, transparent)';
+                            e.currentTarget.style.boxShadow = 'none';
+                          }}
+                          onMouseEnter={(e) => {
+                            if (e.currentTarget !== document.activeElement) {
+                              e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--theme-primary) 12%, #1e293b)';
+                              e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--theme-primary) 40%, transparent)';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (e.currentTarget !== document.activeElement) {
+                              e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--theme-primary) 8%, #1e293b)';
+                              e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--theme-primary) 30%, transparent)';
+                            }
+                          }}
+                        >
+                          {streams.map((stream) => (
+                            <option key={stream.username} value={stream.username} className="bg-slate-800 text-white">
+                              {stream.username}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+                          <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {streams.length === 1 && (
-                  <div className="flex items-center justify-between p-4 bg-slate-800/60 rounded-xl border border-slate-700/50 backdrop-blur-sm shadow-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="relative">
-                        <div className="w-3 h-3 bg-emerald-400 rounded-full shadow-lg shadow-emerald-400/30"></div>
-                        <div className="absolute inset-0 w-3 h-3 bg-emerald-400 rounded-full animate-ping opacity-60"></div>
+                  {streams.length === 1 && (
+                    <div 
+                      className="flex items-center justify-between p-4 glass-theme rounded-xl shadow-lg"
+                      style={{
+                        backgroundColor: 'color-mix(in srgb, var(--theme-primary) 8%, #1e293b)',
+                        borderColor: 'color-mix(in srgb, var(--theme-primary) 25%, transparent)'
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="relative">
+                          <div 
+                            className="w-3 h-3 rounded-full shadow-lg"
+                            style={{
+                              backgroundColor: 'var(--theme-accent)',
+                              boxShadow: `0 4px 14px color-mix(in srgb, var(--theme-accent) 30%, transparent)`
+                            }}
+                          ></div>
+                          <div 
+                            className="absolute inset-0 w-3 h-3 rounded-full animate-ping opacity-60"
+                            style={{
+                              backgroundColor: 'var(--theme-accent)'
+                            }}
+                          ></div>
+                        </div>
+                        <span className="text-sm font-semibold text-slate-100">{activeStreamUsername}</span>
                       </div>
-                      <span className="text-sm font-semibold text-slate-100">{activeStreamUsername}</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                        <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">LIVE</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                      <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">LIVE</span>
-                    </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Mobile Stream Selector */}
+            {isMobile && streams.length > 1 && (
+              <div className="px-3 pb-2">
+                <div className="relative">
+                  <select
+                    value={activeStreamUsername}
+                    onChange={(e) => onStreamChange(e.target.value)}
+                    className="w-full appearance-none glass-theme rounded-lg px-3 py-2 text-white text-sm font-medium focus:outline-none transition-all duration-300 cursor-pointer shadow-lg"
+                    style={{
+                      backgroundColor: 'color-mix(in srgb, var(--theme-primary) 8%, #1e293b)',
+                      borderColor: 'color-mix(in srgb, var(--theme-primary) 30%, transparent)'
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--theme-primary)';
+                      e.currentTarget.style.boxShadow = `0 0 0 2px color-mix(in srgb, var(--theme-primary) 50%, transparent)`;
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--theme-primary) 30%, transparent)';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                    onMouseEnter={(e) => {
+                      if (e.currentTarget !== document.activeElement) {
+                        e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--theme-primary) 12%, #1e293b)';
+                        e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--theme-primary) 40%, transparent)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (e.currentTarget !== document.activeElement) {
+                        e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--theme-primary) 8%, #1e293b)';
+                        e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--theme-primary) 30%, transparent)';
+                      }
+                    }}
+                  >
+                    {streams.map((stream) => (
+                      <option key={stream.username} value={stream.username} className="bg-slate-800 text-white">
+                        {stream.username}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Chat iframe */}
-          <div className="flex-1 relative overflow-hidden">
+          <div 
+            className="flex-1 relative overflow-hidden"
+            style={{ 
+              pointerEvents: isResizing ? 'none' : 'auto' 
+            }}
+          >
             {streams.length > 0 ? (
               <div className="w-full h-full relative">
                 {/* Render all chat iframes - keep them mounted to prevent refresh */}
@@ -331,7 +535,7 @@ export function ChatPanel({
                       }`}
                       style={{ 
                         visibility: isActiveChat ? 'visible' : 'hidden',
-                        pointerEvents: isActiveChat ? 'auto' : 'none'
+                        pointerEvents: isActiveChat && !isResizing ? 'auto' : 'none'
                       }}
                     >
                       <iframe
@@ -348,8 +552,18 @@ export function ChatPanel({
                 })}
                 
                 {/* Overlay gradients for better integration - only on active chat */}
-                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-600/40 to-transparent pointer-events-none z-20"></div>
-                <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-slate-600/40 to-transparent pointer-events-none z-20"></div>
+                <div 
+                  className="absolute inset-x-0 top-0 h-px pointer-events-none z-20"
+                  style={{
+                    background: `linear-gradient(to right, transparent, color-mix(in srgb, var(--theme-primary) 40%, transparent), transparent)`
+                  }}
+                ></div>
+                <div 
+                  className="absolute inset-x-0 bottom-0 h-px pointer-events-none z-20"
+                  style={{
+                    background: `linear-gradient(to right, transparent, color-mix(in srgb, var(--theme-primary) 40%, transparent), transparent)`
+                  }}
+                ></div>
               </div>
             ) : (
               <div className="flex items-center justify-center h-full">
@@ -363,18 +577,6 @@ export function ChatPanel({
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Chat footer */}
-          <div className="px-5 py-2.5 border-t border-slate-700/40 bg-slate-950/60 backdrop-blur-sm">
-            <div className="flex items-center justify-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 256 268" className="flex-shrink-0">
-                <path fill="#5865F2" d="M17.458 0L0 46.556v186.201h63.983v34.934h34.931l34.898-34.934h52.36L256 162.954V0H17.458zm23.259 23.263H232.73v128.029l-40.739 40.741H128L93.113 226.92v-34.887H40.717V23.263zm64.008 69.847v69.841h23.263V93.11h-23.263zm63.997 0v69.841h23.263V93.11H168.72z"/>
-              </svg>
-              <p className="text-xs text-slate-500 font-semibold tracking-wide">
-                Powered by Twitch
-              </p>
-            </div>
           </div>
       </div>
     </div>

@@ -1,0 +1,127 @@
+{
+  "groups": [
+    {
+      "id": "jakura",
+      "name": "J A K U R A",
+      "description": "JAKURA",
+      "members": [
+        "jasontheween",
+        "sakurashymko"
+      ],
+      "matchType": "all",
+      "theme": {
+        "name": "jakura-theme",
+        "colors": {
+          "primary": "#ff1493",
+          "secondary": "#ff69b4",
+          "accent": "#ff6347",
+          "background": "from-pink-950 via-pink-900 to-red-950"
+        },
+        "headerIcon": "heart",
+        "description": "JAKURA Love Theme",
+        "customIcon": "/theme-icons/jakura.png"
+      }
+    },
+    {
+      "id": "faze-clan",
+      "name": "FaZe",
+      "description": "FaZe Clan content creators",
+      "members": [
+        "jasontheween",
+        "stableronaldo",
+        "lacy",
+        "adapt",
+        "silky",
+        "plaqueboymax"
+      ],
+      "matchType": "multiple",
+      "theme": {
+        "name": "faze-theme",
+        "colors": {
+          "primary": "#dc2626",
+          "secondary": "#1f2937",
+          "accent": "#ef4444",
+          "background": "from-red-950 via-gray-900 to-black"
+        },
+        "headerIcon": "zap",
+        "description": "FaZe Clan Theme",
+        "customIcon": "/theme-icons/faze.webp"
+      }
+    },
+    {
+      "id": "oscs",
+      "name": "OSCS",
+      "description": "OSCS content creators",
+      "members": [
+        "arky",
+        "1jdab1",
+        "santipulgaz",
+        "yugi2x",
+        "ursungirl",
+        "nosiiree"
+      ],
+      "matchType": "multiple",
+      "theme": {
+        "name": "oscs-theme",
+        "colors": {
+          "primary": "#1f2937",
+          "secondary": "#111827",
+          "accent": "#374151",
+          "background": "from-black via-gray-950 to-slate-900"
+        },
+        "headerIcon": "circle",
+        "description": "OSCS Dark Theme",
+        "customIcon": "/theme-icons/oscs.jpeg"
+      }
+    },
+    {
+      "id": "otv-friends",
+      "name": "OTV & Friends",
+      "description": "OfflineTV and associated streamers",
+      "members": [
+        "pokimane",
+        "lilypichu",
+        "disguisedtoast",
+        "valkyrae",
+        "sykkuno",
+        "corpse_husband",
+        "fuslie",
+        "tinakitten"
+      ],
+      "matchType": "multiple",
+      "theme": {
+        "name": "otv-theme",
+        "colors": {
+          "primary": "#ff6b9d",
+          "secondary": "#a8e6cf",
+          "accent": "#ffd93d",
+          "background": "from-pink-950 via-pink-900 to-green-950"
+        },
+        "headerIcon": "heart",
+        "description": "OTV & Friends Theme",
+        "customIcon": "/theme-icons/otv-friends.jpeg"
+      }
+    }
+  ],
+  "defaultTheme": {
+    "name": "default-theme",
+    "colors": {
+      "primary": "#8b5cf6",
+      "secondary": "#a855f7",
+      "accent": "#c084fc",
+      "background": "from-slate-950 via-slate-900 to-indigo-950"
+    },
+    "headerIcon": "stream",
+    "description": "Default MultiTwitch Theme"
+  },
+  "matchTypes": {
+    "all": {
+      "description": "All members of the group must be present in active streams",
+      "minRequired": "100%"
+    },
+    "multiple": {
+      "description": "At least 2 members of the group must be present in active streams",
+      "minRequired": 2
+    }
+  }
+} 

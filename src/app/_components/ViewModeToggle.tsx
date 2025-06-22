@@ -1,6 +1,7 @@
 "use client";
 
 import type { ViewMode } from "./MultiTwitchViewer";
+import { useTheme } from "~/contexts/ThemeContext";
 
 interface ViewModeToggleProps {
   viewMode: ViewMode;
@@ -9,18 +10,44 @@ interface ViewModeToggleProps {
 }
 
 export function ViewModeToggle({ viewMode, onViewModeChange, streamCount }: ViewModeToggleProps) {
+  const { themeMatch } = useTheme();
+
   return (
     <div className="flex items-center gap-4">
       <div className="flex items-center gap-3">
         <span className="text-sm font-medium text-slate-400">View Mode:</span>
-        <div className="flex bg-slate-800/60 backdrop-blur-sm rounded-xl p-1.5 border border-slate-700/50 shadow-lg">
+        <div 
+          className="flex glass-theme backdrop-blur-sm rounded-xl p-1.5 shadow-lg"
+          style={{
+            backgroundColor: 'color-mix(in srgb, var(--theme-primary) 8%, #1e293b)',
+            borderColor: 'color-mix(in srgb, var(--theme-primary) 25%, transparent)'
+          }}
+        >
           <button
             onClick={() => onViewModeChange("split")}
-            className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${
+            className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-2 cursor-pointer hover:cursor-pointer active:cursor-pointer ${
               viewMode === "split"
-                ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-lg shadow-violet-500/25 scale-105"
-                : "text-slate-300 hover:text-white hover:bg-slate-700/60"
+                ? "text-white shadow-lg scale-105"
+                : "text-slate-300 hover:text-white"
             }`}
+            style={{
+              background: viewMode === "split" 
+                ? `linear-gradient(to right, var(--theme-primary), var(--theme-secondary))`
+                : 'transparent',
+              boxShadow: viewMode === "split"
+                ? `0 10px 25px color-mix(in srgb, var(--theme-primary) 25%, transparent)`
+                : 'none'
+            }}
+            onMouseEnter={(e) => {
+              if (viewMode !== "split") {
+                e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--theme-primary) 10%, transparent)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (viewMode !== "split") {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }
+            }}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
@@ -29,11 +56,29 @@ export function ViewModeToggle({ viewMode, onViewModeChange, streamCount }: View
           </button>
           <button
             onClick={() => onViewModeChange("single")}
-            className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${
+            className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-2 cursor-pointer hover:cursor-pointer active:cursor-pointer ${
               viewMode === "single"
-                ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-lg shadow-violet-500/25 scale-105"
-                : "text-slate-300 hover:text-white hover:bg-slate-700/60"
+                ? "text-white shadow-lg scale-105"
+                : "text-slate-300 hover:text-white"
             }`}
+            style={{
+              background: viewMode === "single" 
+                ? `linear-gradient(to right, var(--theme-primary), var(--theme-secondary))`
+                : 'transparent',
+              boxShadow: viewMode === "single"
+                ? `0 10px 25px color-mix(in srgb, var(--theme-primary) 25%, transparent)`
+                : 'none'
+            }}
+            onMouseEnter={(e) => {
+              if (viewMode !== "single") {
+                e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--theme-primary) 10%, transparent)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (viewMode !== "single") {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }
+            }}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4h16v16H4V4z" />

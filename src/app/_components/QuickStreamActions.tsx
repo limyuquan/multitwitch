@@ -27,7 +27,7 @@ export function QuickStreamActions({
       <button
         onClick={handleRemove}
         disabled={!canRemove}
-        className={`bg-black/70 backdrop-blur-sm hover:bg-red-600/80 rounded-full p-2 transition-all duration-200 ${
+        className={`bg-black/70 backdrop-blur-sm hover:bg-red-600/80 rounded-full p-2 transition-all duration-200 cursor-pointer hover:cursor-pointer active:cursor-pointer ${
           canRemove 
             ? 'text-white hover:text-white' 
             : 'text-gray-500 cursor-not-allowed opacity-50'

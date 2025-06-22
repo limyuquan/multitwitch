@@ -7,6 +7,12 @@ import { ChatPanel } from "./ChatPanel";
 import { ViewModeToggle } from "./ViewModeToggle";
 import { StreamManagerModal } from "./StreamManagerModal";
 import { EmptyStreamState } from "./EmptyStreamState";
+import { ChatEnhancementPrompt } from "./ChatEnhancementPrompt";
+import { ThemeIndicator } from "./ThemeIndicator";
+import { ThemeIcon } from "./ThemeIcon";
+import { useStreamGroupTheme } from "~/hooks/useStreamGroupTheme";
+import { useThemeCelebration } from "~/hooks/useThemeCelebration";
+import { ThemeProvider } from "~/contexts/ThemeContext";
 
 export interface StreamConfig {
   username: string;
@@ -23,6 +29,17 @@ export function MultiTwitchViewer() {
   const [activeChatStream, setActiveChatStream] = useState<string>("");
   const [isStreamManagerOpen, setIsStreamManagerOpen] = useState(false);
   const [chatPanelWidth, setChatPanelWidth] = useState(320); // Default 320px (80 * 4)
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // Theme management
+  const { themeMatch, isLoading: themeLoading, error: themeError } = useStreamGroupTheme(streams);
+  
+  // Theme celebration effects
+  const { triggerCelebration } = useThemeCelebration(themeMatch, {
+    particleCount: 200,
+    spread: 70,
+    disableForReducedMotion: true
+  });
   
   // Header auto-hide state
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
@@ -132,6 +149,22 @@ export function MultiTwitchViewer() {
     }
   }, [isStreamManagerOpen]);
 
+  // Detect mobile status
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+
+    // Check on mount
+    checkMobile();
+    
+    // Add resize listener
+    window.addEventListener('resize', checkMobile);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   // Set initial active chat stream when streams are configured
   useEffect(() => {
     if (streams.length > 0 && !activeChatStream) {
@@ -187,19 +220,27 @@ export function MultiTwitchViewer() {
   };
 
   if (!isSetupComplete) {
-    return <StreamSetup onStreamsSetup={handleStreamsSetup} />;
+    return (
+      <ThemeProvider themeMatch={themeMatch} isLoading={themeLoading} error={themeError}>
+        <StreamSetup onStreamsSetup={handleStreamsSetup} />
+      </ThemeProvider>
+    );
   }
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-white overflow-hidden">
+    <ThemeProvider themeMatch={themeMatch} isLoading={themeLoading} error={themeError}>
+      <div className="flex h-screen bg-theme-gradient text-white overflow-hidden lg:flex lg:h-screen flex-col lg:flex-row">
       {/* Header */}
       <div 
-        className={`absolute top-0 left-0 right-0 z-50 bg-slate-950/80 backdrop-blur-xl border-b border-slate-700/50 shadow-2xl transition-all duration-500 ${
+        className={`absolute top-0 left-0 right-0 z-50 glass-theme backdrop-blur-xl border-b border-slate-700/50 shadow-2xl transition-all duration-500 ${
           isHeaderVisible 
-            ? 'translate-y-0 opacity-100 shadow-violet-500/10' 
+            ? 'translate-y-0 opacity-100' 
             : '-translate-y-full opacity-0 shadow-transparent'
         }`}
         style={{
+          boxShadow: isHeaderVisible 
+            ? `0 25px 50px -12px color-mix(in srgb, var(--theme-primary) 10%, transparent)` 
+            : 'none',
           transitionTimingFunction: isHeaderVisible 
             ? 'cubic-bezier(0.34, 1.56, 0.64, 1)' // Spring-like entrance
             : 'cubic-bezier(0.4, 0, 0.2, 1)', // Smooth, controlled exit
@@ -208,48 +249,184 @@ export function MultiTwitchViewer() {
         onMouseEnter={() => setIsHeaderHovered(true)}
         onMouseLeave={() => setIsHeaderHovered(false)}
       >
-        <div className="px-3 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6">
+        <div className="px-3 py-2 lg:px-6 lg:py-1.5">
+          {/* Mobile Layout */}
+          <div className="lg:hidden">
+            {/* Top Row - Main Controls */}
+            <div className="flex items-center justify-between mb-2">
+              {/* Left - Back to Setup */}
               <button
                 onClick={handleBackToSetup}
-                className="group flex items-center gap-1 text-slate-400 hover:text-violet-400 transition-all duration-300 hover:-translate-x-1"
+                className="group flex items-center gap-2 text-slate-400 hover:text-theme-primary transition-all duration-300 hover:-translate-x-1 min-w-0 flex-shrink-0"
               >
                 <svg className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                <span className="font-medium cursor-pointer hover:cursor-pointer active:cursor-pointer">Back to Setup</span>
+                <span className="font-semibold text-base">Setup</span>
               </button>
               
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg">
-                    {/* Custom Multi-Stream Icon */}
-                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z" opacity="0.7"/>
-                      <path d="M5 5h4v4H5V5zm10 0h4v4h-4V5zM5 15h4v4H5v-4zm10 0h4v4h-4v-4z"/>
-                      <circle cx="7" cy="7" r="1" fill="white"/>
-                      <circle cx="17" cy="7" r="1" fill="white"/>
-                      <circle cx="7" cy="17" r="1" fill="white"/>
-                      <circle cx="17" cy="17" r="1" fill="white"/>
-                    </svg>
+              {/* Right - Manage Streams Button */}
+              <button
+                onClick={() => setIsStreamManagerOpen(true)}
+                className="group flex items-center gap-2 px-4 py-2.5 btn-theme rounded-xl font-medium text-white shadow-lg hover:scale-105 text-base min-h-[44px] flex-shrink-0"
+              >
+                <svg className="w-4 h-4 transition-transform group-hover:rotate-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+                <span>Manage</span>
+              </button>
+            </div>
+            
+            {/* Bottom Row - Branding and Theme */}
+            <div className="flex items-center justify-between">
+              {/* Left - MultiTwitch Branding */}
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div 
+                  className="relative shadow-lg rounded-lg p-0.5 flex-shrink-0"
+                  style={{ 
+                    background: `linear-gradient(135deg, var(--theme-primary), var(--theme-secondary))`,
+                    boxShadow: `0 10px 20px color-mix(in srgb, var(--theme-primary) 15%, transparent)`
+                  }}
+                >
+                  <ThemeIcon 
+                    theme={themeMatch.theme} 
+                    size="md"
+                    className="shadow-lg"
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-xl font-black bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent tracking-tight leading-none truncate">
+                    MultiTwitch
+                  </h1>
+                  <div className="flex items-center gap-2 text-sm text-slate-400 font-medium">
+                    <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse flex-shrink-0"></div>
+                    <span className="truncate">{streams.length} stream{streams.length === 1 ? "" : "s"}</span>
                   </div>
-                  <div>
-                    <h1 className="text-xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
-                      MultiTwitch
-                    </h1>
-                    <div className="text-sm text-slate-400 font-medium">
-                      {streams.length} stream{streams.length === 1 ? "" : "s"} active
+                </div>
+              </div>
+
+              {/* Right - Theme Group (Compact for Mobile) */}
+              {themeMatch.matched && themeMatch.group && (
+                <button 
+                  onClick={triggerCelebration} 
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl glass-theme border border-theme-primary/30 shadow-lg ml-3 flex-shrink-0 min-h-[44px]"
+                  style={{
+                    backgroundColor: 'color-mix(in srgb, var(--theme-primary) 8%, transparent)',
+                    boxShadow: `0 10px 20px color-mix(in srgb, var(--theme-primary) 20%, transparent)`
+                  }}
+                >
+                  <div 
+                    className="relative shadow-lg rounded-lg p-0.5 flex-shrink-0"
+                    style={{ 
+                      background: `linear-gradient(135deg, var(--theme-primary), var(--theme-secondary))`,
+                      boxShadow: `0 8px 16px color-mix(in srgb, var(--theme-primary) 25%, transparent)`
+                    }}
+                  >
+                    <ThemeIcon 
+                      theme={themeMatch.theme} 
+                      size="sm"
+                      className="shadow-lg"
+                    />
+                  </div>
+                  <div className="text-left min-w-0">
+                    <div className="text-sm font-bold text-theme-primary tracking-wide truncate max-w-[80px]">
+                      {themeMatch.group.name}
                     </div>
+                    <div className="text-xs text-slate-300 font-medium opacity-80">
+                      {themeMatch.matchedMembers?.length || 0} matched
+                    </div>
+                  </div>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Desktop Layout */}
+          <div className="hidden lg:grid lg:grid-cols-3 lg:items-center">
+            {/* Left Section - Setup + MultiTwitch Branding */}
+            <div className="flex items-center gap-4">
+              <button
+                onClick={handleBackToSetup}
+                className="group flex items-center gap-1 text-slate-400 hover:text-theme-primary transition-all duration-300 hover:-translate-x-1"
+              >
+                <svg className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                <span className="font-semibold cursor-pointer hover:cursor-pointer active:cursor-pointer text-base">Setup</span>
+              </button>
+              
+              <div className="flex items-center gap-3">
+                <div 
+                  className="relative shadow-lg rounded-lg p-0.5"
+                  style={{ 
+                    background: `linear-gradient(135deg, var(--theme-primary), var(--theme-secondary))`,
+                    boxShadow: `0 10px 20px color-mix(in srgb, var(--theme-primary) 15%, transparent)`
+                  }}
+                >
+                  <ThemeIcon 
+                    theme={themeMatch.theme} 
+                    size="md"
+                    className="shadow-lg"
+                  />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-black bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent tracking-tight leading-none">
+                    MultiTwitch
+                  </h1>
+                  <div className="flex items-center gap-2 text-sm text-slate-400 font-medium">
+                    <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></div>
+                    <span>{streams.length} stream{streams.length === 1 ? "" : "s"} active</span>
                   </div>
                 </div>
               </div>
             </div>
+
+            {/* Center Section - Active Theme Group (Most Prominent) */}
+            <div className="flex justify-center">
+              {themeMatch.matched && themeMatch.group && (
+                <button onClick={triggerCelebration} className="flex items-center gap-4 px-6 py-3 rounded-2xl glass-theme border-2 border-theme-primary/40 shadow-2xl cursor-pointer hover:cursor-pointer active:cursor-pointer"
+                     style={{
+                       backgroundColor: 'color-mix(in srgb, var(--theme-primary) 8%, transparent)',
+                       boxShadow: `0 25px 50px color-mix(in srgb, var(--theme-primary) 30%, transparent)`
+                     }}>
+                  <div 
+                    className="relative shadow-2xl rounded-xl p-1"
+                    style={{ 
+                      background: `linear-gradient(135deg, var(--theme-primary), var(--theme-secondary))`,
+                      boxShadow: `0 15px 30px color-mix(in srgb, var(--theme-primary) 40%, transparent)`
+                    }}
+                  >
+                    <ThemeIcon 
+                      theme={themeMatch.theme} 
+                      size="lg"
+                      className="shadow-xl"
+                    />
+                    {/* Animated glow effect */}
+                    <div 
+                      className="absolute inset-0 rounded-xl animate-pulse opacity-30"
+                      style={{ 
+                        background: `linear-gradient(135deg, var(--theme-primary), var(--theme-secondary))`,
+                        filter: 'blur(6px)'
+                      }}
+                    ></div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-theme-primary tracking-wide">
+                      {themeMatch.group.name}
+                    </div>
+                    <div className="text-sm text-slate-300 font-medium opacity-80">
+                      {themeMatch.matchedMembers?.length || 0} matched streamers
+                    </div>
+                  </div>
+                </button>
+              )}
+            </div>
             
-            <div className="flex items-center gap-4">
+            {/* Right Section - Controls */}
+            <div className="flex items-center justify-end gap-3">
               <button
                 onClick={() => setIsStreamManagerOpen(true)}
-                className="group flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 rounded-xl font-medium transition-all duration-300 text-white shadow-lg hover:shadow-violet-500/25 hover:scale-105 cursor-pointer hover:cursor-pointer active:cursor-pointer"
+                className="group flex items-center gap-2 px-4 py-2.5 btn-theme rounded-xl font-medium text-white shadow-lg hover:scale-105 cursor-pointer hover:cursor-pointer active:cursor-pointer text-base"
               >
                 <svg className="w-4 h-4 transition-transform group-hover:rotate-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M12 5v14M5 12h14" />
@@ -257,22 +434,60 @@ export function MultiTwitchViewer() {
                 <span>Manage Streams</span>
               </button>
               
+              {/* Only show view mode toggle on desktop when multiple streams */}
               {streams.length > 1 && (
-                <ViewModeToggle
-                  viewMode={viewMode}
-                  onViewModeChange={setViewMode}
-                  streamCount={streams.length}
-                />
+                <div>
+                  <ViewModeToggle
+                    viewMode={viewMode}
+                    onViewModeChange={setViewMode}
+                    streamCount={streams.length}
+                  />
+                </div>
               )}
             </div>
           </div>
         </div>
       </div>
 
+      {/* Mobile Header Expand Indicator - Only show when header is hidden */}
+      <div 
+        className={`lg:hidden absolute top-0 left-1/2 transform -translate-x-1/2 z-40 transition-all duration-300 ${
+          !isHeaderVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
+        }`}
+      >
+        <button
+          onClick={() => setIsHeaderVisible(true)}
+          className="flex items-center justify-center px-4 py-2 glass-theme backdrop-blur-xl border border-slate-700/50 rounded-b-xl shadow-lg hover:scale-105 active:scale-95 transition-all duration-200"
+          style={{
+            backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, rgba(15, 23, 42, 0.8))',
+            borderTopColor: 'transparent',
+            boxShadow: `0 8px 25px color-mix(in srgb, var(--theme-primary) 8%, transparent)`
+          }}
+          aria-label="Show header controls"
+        >
+          {/* Chevron down icon to indicate expansion */}
+          <svg 
+            className="w-4 h-4 text-slate-300 hover:text-theme-primary transition-colors duration-200" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+          
+          {/* Small dots to indicate there are controls */}
+          <div className="flex items-center gap-1 ml-2">
+            <div className="w-1 h-1 bg-slate-400 rounded-full opacity-60"></div>
+            <div className="w-1 h-1 bg-slate-400 rounded-full opacity-60"></div>
+            <div className="w-1 h-1 bg-slate-400 rounded-full opacity-60"></div>
+          </div>
+        </button>
+      </div>
+
       {/* Main Content */}
       <div 
-        className={`flex flex-1 transition-all duration-500 ${
-          isHeaderVisible ? 'pt-20' : 'pt-0'
+        className={`flex flex-1 flex-col lg:flex-row transition-all duration-500 ${
+          isHeaderVisible ? 'pt-20 lg:pt-20' : 'pt-0'
         }`}
         style={{
           transitionTimingFunction: isHeaderVisible 
@@ -300,11 +515,11 @@ export function MultiTwitchViewer() {
         ) : (
           <>
             {/* Video Area */}
-            <div className="flex-1 min-w-0 relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-900/50 to-transparent pointer-events-none z-10" />
+            <div className="flex-1 min-w-0 relative h-1/2 lg:h-full">
+              <div className="absolute inset-0 bg-gradient-to-br from-slate-900/50 to-transparent pointer-events-none z-10 hidden lg:block" />
               <VideoGrid
                 streams={streams}
-                viewMode={viewMode}
+                viewMode={viewMode} // Use viewMode prop but component will override for mobile
                 activeStreamIndex={activeStreamIndex}
                 onActiveStreamChange={setActiveStreamIndex}
                 onStreamReorder={handleStreamReorder}
@@ -312,17 +527,21 @@ export function MultiTwitchViewer() {
                   const updatedStreams = streams.filter(s => s.username !== stream.username);
                   handleStreamsUpdate(updatedStreams);
                 }}
+                isMobile={isMobile} // Pass mobile prop
               />
             </div>
 
             {/* Chat Panel */}
-            <ChatPanel
-              streams={streams}
-              activeStreamUsername={activeChatStream}
-              onStreamChange={setActiveChatStream}
-              width={chatPanelWidth}
-              onWidthChange={setChatPanelWidth}
-            />
+            <div className="h-1/2 lg:h-full lg:w-auto">
+              <ChatPanel
+                streams={streams}
+                activeStreamUsername={activeChatStream}
+                onStreamChange={setActiveChatStream}
+                width={chatPanelWidth}
+                onWidthChange={setChatPanelWidth}
+                isMobile={isMobile} // Pass mobile prop
+              />
+            </div>
           </>
         )}
       </div>
@@ -334,6 +553,10 @@ export function MultiTwitchViewer() {
         streams={streams}
         onStreamsUpdate={handleStreamsUpdate}
       />
-    </div>
+
+      {/* Chat Enhancement Prompt */}
+      <ChatEnhancementPrompt />
+      </div>
+    </ThemeProvider>
   );
 } 

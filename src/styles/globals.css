@@ -5,6 +5,80 @@
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
+/* Theme CSS Custom Properties */
+:root {
+  /* Default theme colors */
+  --theme-primary: #8b5cf6;
+  --theme-secondary: #a855f7;
+  --theme-accent: #c084fc;
+  --theme-background: linear-gradient(to bottom right, #020617, #0f172a, #1e1b4b);
+  --theme-name: "default-theme";
+}
+
+/* Theme utility classes */
+.bg-theme-primary {
+  background-color: var(--theme-primary);
+}
+
+.bg-theme-secondary {
+  background-color: var(--theme-secondary);
+}
+
+.bg-theme-accent {
+  background-color: var(--theme-accent);
+}
+
+.bg-theme-gradient {
+  background: var(--theme-background);
+}
+
+.text-theme-primary {
+  color: var(--theme-primary);
+}
+
+.text-theme-secondary {
+  color: var(--theme-secondary);
+}
+
+.text-theme-accent {
+  color: var(--theme-accent);
+}
+
+.border-theme-primary {
+  border-color: var(--theme-primary);
+}
+
+.border-theme-secondary {
+  border-color: var(--theme-secondary);
+}
+
+.border-theme-accent {
+  border-color: var(--theme-accent);
+}
+
+/* Theme-aware gradient buttons */
+.btn-theme {
+  background: linear-gradient(135deg, var(--theme-primary), var(--theme-secondary));
+  border: 1px solid color-mix(in srgb, var(--theme-primary) 30%, transparent);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-theme:hover {
+  background: linear-gradient(135deg, 
+    color-mix(in srgb, var(--theme-primary) 80%, white), 
+    color-mix(in srgb, var(--theme-secondary) 80%, white)
+  );
+  box-shadow: 0 25px 50px -12px color-mix(in srgb, var(--theme-primary) 25%, transparent);
+  transform: translateY(-2px) scale(1.02);
+}
+
+/* Theme-aware glass effects */
+.glass-theme {
+  background: color-mix(in srgb, var(--theme-primary) 5%, transparent);
+  backdrop-filter: blur(20px);
+  border: 1px solid color-mix(in srgb, var(--theme-primary) 10%, transparent);
+}
+
 /* Performance optimizations */
 * {
   box-sizing: border-box;
@@ -78,49 +152,65 @@
   transform: translate3d(0, 0, 0);
 }
 
-/* Enhanced snap effect */
-@keyframes snapIn {
-  0% { transform: scale(0.92) rotate(-1deg); }
-  50% { transform: scale(1.05) rotate(0.5deg); }
-  100% { transform: scale(1) rotate(0deg); }
-}
-
+/* Snap animation for drag and drop */
 .snap-animation {
-  animation: snapIn 300ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  animation: snap 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
-/* GPU acceleration for smooth dragging */
+@keyframes snap {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Enhanced dragging state */
 .dragging {
-  transform: translate3d(0, 0, 0);
-  backface-visibility: hidden;
-  perspective: 1000px;
+  z-index: 1000 !important;
+  pointer-events: none;
 }
 
-/* Reduce layout thrashing */
-.transform-gpu {
-  transform: translate3d(0, 0, 0);
-  will-change: transform;
+/* Smooth width transitions for resizable streams - only when not dragging */
+.resizable-stream {
+  transition: width 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: width;
 }
 
-/* Modern scrollbar styling */
+/* No transitions during active dragging for maximum responsiveness */
+.no-transition {
+  transition: none !important;
+}
+
+/* Custom scrollbar for better aesthetics */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(51, 65, 85, 0.3);
+  background: rgba(71, 85, 105, 0.1);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, rgba(139, 92, 246, 0.6), rgba(168, 85, 247, 0.6));
+  background: rgba(139, 92, 246, 0.3);
   border-radius: 3px;
-  transition: background 0.3s ease;
+  transition: background 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, rgba(139, 92, 246, 0.8), rgba(168, 85, 247, 0.8));
+  background: rgba(139, 92, 246, 0.5);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(139, 92, 246, 0.3) rgba(71, 85, 105, 0.1);
 }
 
 /* Focus styles for accessibility */

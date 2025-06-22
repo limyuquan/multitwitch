@@ -44,7 +44,7 @@ export function DraggableStreamItem({
       ref={setNodeRef}
       style={style}
       data-username={stream.username}
-      className={`relative group bg-gray-800 rounded-lg overflow-hidden select-none ${
+      className={`relative group bg-gray-800 rounded-lg overflow-hidden select-none h-full ${
         isDragging 
           ? "z-50 scale-102 shadow-2xl ring-2 ring-purple-400 bg-gray-700 brightness-110 dragging" 
           : isOver
@@ -52,7 +52,7 @@ export function DraggableStreamItem({
           : "hover:ring-1 hover:ring-gray-600/30 transform-gpu"
       } transition-all duration-300 ease-out`}
     >
-      {/* Drag handles on edges only - not covering the video */}
+      {/* Top edge drag handle - primary area for dragging */}
       <div
         {...attributes}
         {...listeners}
@@ -62,7 +62,7 @@ export function DraggableStreamItem({
         title="Drag to reorder streams"
       />
       
-      {/* Left edge drag handle */}
+      {/* Left edge drag handle - avoid right edge to not interfere with separator */}
       <div
         {...attributes}
         {...listeners}
@@ -71,18 +71,8 @@ export function DraggableStreamItem({
         } transition-colors duration-200`}
         title="Drag to reorder streams"
       />
-      
-      {/* Right edge drag handle */}
-      <div
-        {...attributes}
-        {...listeners}
-        className={`absolute top-12 right-0 w-4 bottom-0 z-20 cursor-grab active:cursor-grabbing ${
-          isDragging ? 'bg-purple-500/10' : ''
-        } transition-colors duration-200`}
-        title="Drag to reorder streams"
-      />
 
-      {/* Subtle drag handles in corners - only visible on longer hover */}
+      {/* Subtle drag indicator - only visible on longer hover */}
       <div className="absolute top-3 left-1/2 transform -translate-x-1/2 z-15 opacity-0 group-hover:opacity-60 transition-all duration-500 delay-300 pointer-events-none">
         <div className="bg-black/60 backdrop-blur-sm px-2 py-1 rounded-full text-xs text-gray-300 flex items-center gap-1">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" className="opacity-70">

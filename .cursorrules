@@ -9,6 +9,7 @@ good UI for managing multiple streams. It is intended to be used on both a deskt
 This project is built with the T3 Stack (Next.js + TypeScript + Tailwind + tRPC + Prisma).
 Documentation: https://create.t3.gg/en/usage/next-js
 
+
 ## Core Principles
 
 - **Simplicity over complexity**: Always choose the simpler solution when possible
@@ -205,6 +206,196 @@ export const postRouter = createTRPCRouter({
 - Monitor application performance and errors
 - Use proper logging for debugging
 
+## Dynamic Theme System
+
+This project features a comprehensive theme system that automatically applies different visual themes based on active streamers. Themes are organized into "streamer groups" that trigger when specific combinations of streamers are present.
+
+### Theme Architecture
+
+#### Core Components
+- **Configuration**: `src/config/stream-groups.json` - Main theme configuration file
+- **Types**: `src/types/stream-groups.ts` - TypeScript definitions for theme objects
+- **Hook**: `src/hooks/useStreamGroupTheme.ts` - React hook for theme detection and management
+- **Context**: `src/contexts/ThemeContext.tsx` - React context for theme state management
+- **Icons**: `public/theme-icons/` - Custom theme icons (PNG/JPEG format)
+
+#### CSS Integration
+- **CSS Variables**: Dynamic theme colors via CSS custom properties
+  - `--theme-primary`: Primary theme color
+  - `--theme-secondary`: Secondary theme color  
+  - `--theme-accent`: Accent/highlight color
+  - `--theme-background`: Background gradient
+- **Utility Classes**: Pre-built theme-aware CSS classes
+  - `.bg-theme-primary`, `.text-theme-primary`
+  - `.btn-theme` - Theme-aware button styling
+  - `.glass-theme` - Theme-aware glass effect
+
+### Theme Configuration Structure
+
+```json
+{
+  "groups": [
+    {
+      "id": "otv-friends",
+      "name": "OTV & Friends",
+      "description": "OfflineTV and friends group",
+      "members": ["pokimane", "lilypichu", "disguisedtoast", "valkyrae"],
+      "matchType": "multiple",
+      "theme": {
+        "primary": "#ff6b9d",
+        "secondary": "#c44569", 
+        "accent": "#f8b500",
+        "background": "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        "customIcon": "/theme-icons/otv-friends.jpeg"
+      }
+    }
+  ]
+}
+```
+
+#### Match Types
+- **"all"**: All group members must be active simultaneously
+- **"multiple"**: At least 2 group members must be active (minimum threshold)
+
+### Creating New Themes
+
+#### Step 1: Add Theme Configuration
+Edit `src/config/stream-groups.json`:
+
+```json
+{
+  "id": "unique-theme-id",
+  "name": "Theme Display Name",
+  "description": "Brief description of the theme",
+  "members": ["streamer1", "streamer2", "streamer3"],
+  "matchType": "multiple", // or "all"
+  "theme": {
+    "primary": "#hexcolor",
+    "secondary": "#hexcolor",
+    "accent": "#hexcolor", 
+    "background": "linear-gradient(...)",
+    "customIcon": "/theme-icons/theme-name.jpeg"
+  }
+}
+```
+
+#### Step 2: Add Theme Icon
+- Create icon file in `public/theme-icons/`
+- Recommended size: 64x64px or higher
+- Supported formats: PNG, JPEG
+- Naming convention: `theme-name.jpeg`
+
+#### Step 3: Test Theme
+- Add matching streamers to test the theme activation
+- Verify colors, icons, and visual consistency across components
+
+### Applying Themes to Components
+
+#### Using the Theme Hook
+```typescript
+import { useTheme } from "~/contexts/ThemeContext";
+
+function MyComponent() {
+  const { themeMatch } = useTheme();
+  
+  // Check if theme is active
+  if (themeMatch.matched) {
+    // Theme is active, themeMatch.theme contains colors
+    // themeMatch.group contains group info
+  }
+}
+```
+
+#### CSS-in-JS Styling Pattern
+```typescript
+// Theme-aware dynamic styling
+<div
+  className="glass-theme rounded-xl"
+  style={{
+    backgroundColor: 'color-mix(in srgb, var(--theme-primary) 10%, transparent)',
+    borderColor: 'color-mix(in srgb, var(--theme-primary) 30%, transparent)',
+    boxShadow: `0 10px 25px color-mix(in srgb, var(--theme-primary) 15%, transparent)`
+  }}
+>
+```
+
+#### Interactive States Pattern
+```typescript
+// Hover and focus states with theme colors
+<button
+  onMouseEnter={(e) => {
+    e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--theme-primary) 15%, transparent)';
+  }}
+  onMouseLeave={(e) => {
+    e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--theme-primary) 8%, transparent)';
+  }}
+>
+```
+
+### Theme-Aware Components
+
+All major UI components support theming:
+- **MultiTwitchViewer**: Main container with theme provider
+- **ChatPanel**: Chat interface with theme-aware styling
+- **VideoGrid**: Stream grid with themed navigation and controls
+- **ViewModeToggle**: Toggle buttons with theme gradients
+- **ThemeIcon**: Custom icon component with fallbacks
+
+### Theme Styling Guidelines
+
+#### Color Usage Patterns
+- **Primary (3-8%)**: Subtle backgrounds, borders
+- **Primary (10-15%)**: Interactive hover states
+- **Primary (20-30%)**: Active states, prominent borders
+- **Primary (40-50%)**: Focused/selected states
+- **Secondary**: Gradients, accent elements
+- **Accent**: Status indicators, live badges
+
+#### CSS `color-mix()` Function
+```css
+/* Transparency with theme colors */
+background: color-mix(in srgb, var(--theme-primary) 10%, transparent);
+
+/* Blending with base colors */
+background: color-mix(in srgb, var(--theme-primary) 15%, #1e293b);
+```
+
+#### Default Styling Approach
+- **Always preserve original styling**: Current styles serve as default/fallback
+- **Additive theming**: Add theme colors on top of existing design
+- **Graceful fallback**: Components work perfectly without active themes
+
+### Theme System Features
+
+- **Automatic Detection**: Themes activate when matching streamers are present
+- **Real-time Updates**: Theme changes instantly when streamers are added/removed
+- **Performance Optimized**: CSS custom properties for efficient re-rendering
+- **Type Safe**: Full TypeScript support with proper type definitions
+- **Icon System**: Custom theme icons with PNG/SVG fallbacks
+- **Responsive Design**: Themes work across mobile and desktop layouts
+- **Glass Effects**: Consistent glass morphism with theme integration
+
+### Troubleshooting Themes
+
+#### Common Issues
+- **Theme not activating**: Check streamer usernames match exactly (case-sensitive)
+- **Icons not loading**: Verify file path and format in `/theme-icons/`
+- **Colors not applying**: Ensure CSS custom properties are used correctly
+- **Performance issues**: Use `color-mix()` for transparency instead of rgba()
+
+#### Debug Tools
+- Check browser console for theme detection logs
+- Inspect CSS custom properties in DevTools
+- Verify theme configuration JSON syntax
+- Test with different streamer combinations
+
+### Performance Considerations
+
+- **CSS Variables**: More performant than JavaScript style updates
+- **Component Optimization**: Theme context prevents unnecessary re-renders
+- **Icon Loading**: Optimized with Next.js Image component and fallbacks
+- **Color Calculations**: Browser-native `color-mix()` for better performance
+
 ## When Working on This Codebase
 
 1. **Follow the existing patterns** - Don't introduce new patterns without good reason
@@ -213,6 +404,8 @@ export const postRouter = createTRPCRouter({
 4. **Update types** - If you change the database schema, regenerate Prisma types
 5. **Document complex logic** - Add comments for non-obvious business logic
 6. **Consider performance** - Be mindful of database queries and bundle size
+7. **Theme consistency** - When adding new components, integrate theme support using established patterns
+8. **Default styling** - Always maintain original styling as fallback when themes are inactive
 
 Remember: The best code is code that other developers can easily read, understand, and modify. Always prioritize clarity over cleverness. 
 
