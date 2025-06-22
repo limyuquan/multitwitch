@@ -58,7 +58,7 @@ export function EmptyStreamState({ onManageStreams, onBackToSetup }: EmptyStream
         <div className="mt-8 text-sm text-slate-500">
           <p className="flex items-center justify-center gap-2">
             <span className="w-2 h-2 bg-violet-400 rounded-full animate-pulse"></span>
-            MultiTwitch Experience
+            MultiTwitcher Experience
           </p>
         </div>
       </div>

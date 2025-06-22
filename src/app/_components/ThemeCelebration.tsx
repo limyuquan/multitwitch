@@ -175,7 +175,7 @@ async function launchFireExplosion(colors: string[], primaryShape?: confetti.Sha
           angle: 90,
           spread: 30,
           origin: { x: 0.3 + i * 0.1, y: 0.9 },
-          colors: [colors[0], colors[1], '#ff4500'],
+          colors: [colors[0] || '#ff6b9d', colors[1] || '#c44569', '#ff4500'],
           shapes,
           startVelocity: 50,
           scalar: 0.8,

@@ -6,7 +6,7 @@ import { Geist } from "next/font/google";
 import { TRPCReactProvider } from "~/trpc/react";
 
 export const metadata: Metadata = {
-  title: "MultiTwitch",
+  title: "MultiTwitcher",
   description: "Watch multiple Twitch streams at once",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };

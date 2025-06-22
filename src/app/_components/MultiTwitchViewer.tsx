@@ -7,8 +7,6 @@ import { ChatPanel } from "./ChatPanel";
 import { ViewModeToggle } from "./ViewModeToggle";
 import { StreamManagerModal } from "./StreamManagerModal";
 import { EmptyStreamState } from "./EmptyStreamState";
-import { ChatEnhancementPrompt } from "./ChatEnhancementPrompt";
-import { ThemeIndicator } from "./ThemeIndicator";
 import { ThemeIcon } from "./ThemeIcon";
 import { useStreamGroupTheme } from "~/hooks/useStreamGroupTheme";
 import { useThemeCelebration } from "~/hooks/useThemeCelebration";
@@ -296,7 +294,7 @@ export function MultiTwitchViewer() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <h1 className="text-xl font-black bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent tracking-tight leading-none truncate">
-                    MultiTwitch
+                    MultiTwitcher
                   </h1>
                   <div className="flex items-center gap-2 text-sm text-slate-400 font-medium">
                     <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse flex-shrink-0"></div>
@@ -371,10 +369,10 @@ export function MultiTwitchViewer() {
                 </div>
                 <div>
                   <h1 className="text-2xl font-black bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent tracking-tight leading-none">
-                    MultiTwitch
+                    MultiTwitcher
                   </h1>
                   <div className="flex items-center gap-2 text-sm text-slate-400 font-medium">
-                    <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></div>
+                    <div className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-pulse"></div>
                     <span>{streams.length} stream{streams.length === 1 ? "" : "s"} active</span>
                   </div>
                 </div>
@@ -383,7 +381,7 @@ export function MultiTwitchViewer() {
 
             {/* Center Section - Active Theme Group (Most Prominent) */}
             <div className="flex justify-center">
-              {themeMatch.matched && themeMatch.group && (
+              {themeMatch.matched && themeMatch.group ?(
                 <button onClick={triggerCelebration} className="flex items-center gap-4 px-6 py-3 rounded-2xl glass-theme border-2 border-theme-primary/40 shadow-2xl cursor-pointer hover:cursor-pointer active:cursor-pointer"
                      style={{
                        backgroundColor: 'color-mix(in srgb, var(--theme-primary) 8%, transparent)',
@@ -419,6 +417,9 @@ export function MultiTwitchViewer() {
                     </div>
                   </div>
                 </button>
+              ) : (
+                <div className="py-7.5">
+                </div>
               )}
             </div>
             
@@ -553,9 +554,6 @@ export function MultiTwitchViewer() {
         streams={streams}
         onStreamsUpdate={handleStreamsUpdate}
       />
-
-      {/* Chat Enhancement Prompt */}
-      <ChatEnhancementPrompt />
       </div>
     </ThemeProvider>
   );

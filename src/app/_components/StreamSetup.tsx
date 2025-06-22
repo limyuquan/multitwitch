@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import type { StreamConfig } from "./MultiTwitchViewer";
 import { AutocompleteInput } from "./AutocompleteInput";
 
@@ -9,6 +10,7 @@ interface StreamSetupProps {
 }
 
 export function StreamSetup({ onStreamsSetup }: StreamSetupProps) {
+  const router = useRouter();
   const [inputValue, setInputValue] = useState("");
   const [streamList, setStreamList] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -186,7 +188,7 @@ export function StreamSetup({ onStreamsSetup }: StreamSetupProps) {
                 Best Experience on Desktop
               </h3>
               <p className="text-[#a1a1aa] text-sm leading-relaxed">
-                MultiTwitch is optimized for desktop viewing with multiple streams and chat windows. 
+                MultiTwitcher is optimized for desktop viewing with multiple streams and chat windows. 
                 For the best experience, we recommend using a desktop or laptop computer.
               </p>
               
@@ -273,7 +275,7 @@ export function StreamSetup({ onStreamsSetup }: StreamSetupProps) {
               <div className="space-y-3 lg:space-y-6 text-center lg:text-left">
                 <div className="relative">
                   <h1 className="text-3xl sm:text-4xl lg:text-6xl xl:text-7xl font-black text-white lg:text-transparent lg:bg-gradient-to-r lg:from-white lg:via-[#f8fafc] lg:to-[#e2e8f0] lg:bg-clip-text leading-tight">
-                    Multi<span className="text-transparent bg-gradient-to-r from-[#9146ff] via-[#8b5cf6] to-[#772ce8] bg-clip-text">Twitch</span>
+                    Multi<span className="text-transparent bg-gradient-to-r from-[#9146ff] via-[#8b5cf6] to-[#772ce8] bg-clip-text">Twitcher</span>
                   </h1>
                   <div className="absolute -inset-4 bg-gradient-to-r from-[#9146ff]/10 via-transparent to-[#772ce8]/10 blur-xl opacity-50 animate-pulse-slow hidden lg:block" />
                 </div>
@@ -296,10 +298,8 @@ export function StreamSetup({ onStreamsSetup }: StreamSetupProps) {
             {/* Feature highlights - Hidden on mobile, shown on desktop */}
             <div className="hidden lg:grid grid-cols-1 sm:grid-cols-2 gap-6 pt-8">
               {[
-                { icon: "👥", title: "Multi-View", desc: "Watch multiple streams" },
-                { icon: "💬", title: "Live Chat", desc: "Interactive chat experience" },
-                { icon: "⚡", title: "Real-time", desc: "Instant streaming updates" },
-                { icon: "🎮", title: "Gaming", desc: "Perfect for tournaments" }
+                { icon: "👥", title: "Multi-View", desc: "Watch multiple streams at once, and resize them to your liking" },
+                { icon: "🎨", title: "Custom Group Themes", desc: "Get custom theme for the streamer groups you watch" },
               ].map((feature, i) => (
                 <div
                   key={i}
@@ -311,6 +311,40 @@ export function StreamSetup({ onStreamsSetup }: StreamSetupProps) {
                   <p className="text-sm text-[#a1a1aa] group-hover:text-white transition-colors">{feature.desc}</p>
                 </div>
               ))}
+            </div>
+
+            {/* Theme Preview Button - Desktop only */}
+            <div className="hidden lg:block">
+              <button
+                onClick={() => router.push('/themes')}
+                className="group relative flex items-center gap-4 p-6 bg-gradient-to-br from-[#18181b]/90 via-[#1f1f23]/80 to-[#18181b]/90 border border-[#3f3f46]/50 backdrop-blur-sm rounded-2xl hover:border-[#9146ff]/60 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-[#9146ff]/30 cursor-pointer w-full text-left overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-[#9146ff]/5 via-[#772ce8]/5 to-[#9146ff]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="absolute -inset-6 bg-gradient-to-r from-[#9146ff]/20 via-transparent to-[#772ce8]/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                
+                {/* Icon */}
+                <div className="relative w-16 h-16 bg-gradient-to-br from-[#9146ff] via-[#8b5cf6] to-[#772ce8] rounded-2xl flex items-center justify-center shadow-xl shadow-[#9146ff]/30 group-hover:scale-110 transition-transform duration-500 flex-shrink-0">
+                  <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
+                </div>
+                
+                {/* Content */}
+                <div className="relative flex-1 space-y-2">
+                  <h3 className="text-xl font-bold text-white group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-[#9146ff] group-hover:to-[#772ce8] group-hover:bg-clip-text transition-all duration-300">
+                    Explore Themes
+                  </h3>
+                  <p className="text-[#a1a1aa] group-hover:text-white transition-colors duration-300 text-sm leading-relaxed">
+                    Preview all available streamer group themes and see what colors await when you watch different combinations
+                  </p>
+                  <div className="flex items-center gap-2 text-[#9146ff] group-hover:text-white transition-colors duration-300 font-medium text-sm pt-1">
+                    <span>View all themes</span>
+                    <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform duration-300" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                    </svg>
+                  </div>
+                </div>
+              </button>
             </div>
           </div>
 
@@ -499,7 +533,7 @@ export function StreamSetup({ onStreamsSetup }: StreamSetupProps) {
                                 </div>
                                 <div className="absolute -inset-2 bg-gradient-to-r from-[#9146ff]/40 to-[#772ce8]/40 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500 hidden lg:block" />
                                 {/* Online indicator */}
-                                <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#22c55e] border-2 border-[#1a1a1a] lg:border-[#0e0e10] rounded-full animate-pulse"></div>
+                                <div className="absolute -top-1 -right-1 w-4 h-4 bg-purple-500 border-2 border-[#1a1a1a] lg:border-[#0e0e10] rounded-full animate-pulse"></div>
                               </div>
                               
                               <div className="flex-1 min-w-0">
@@ -511,9 +545,6 @@ export function StreamSetup({ onStreamsSetup }: StreamSetupProps) {
                                     Ready to watch
                                   </div>
                                   <div className="w-1 h-1 bg-[#6b6b6b] rounded-full"></div>
-                                  <div className="text-[#22c55e] text-xs font-semibold">
-                                    LIVE
-                                  </div>
                                 </div>
                               </div>
                             </div>

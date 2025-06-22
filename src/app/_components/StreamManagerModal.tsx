@@ -315,15 +315,12 @@ function StreamItem({ stream, onRemove, canRemove, isMobile = false }: StreamIte
       isMobile ? 'p-4' : 'p-4'
     }`}>
       <div className="flex items-center gap-3 flex-1 min-w-0">
+        {/* Streamer Avatar */}
         <div className={`${isMobile ? 'w-12 h-12' : 'w-10 h-10'} bg-purple-600 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0`}>
           {stream.username[0]?.toUpperCase()}
         </div>
         <div className="min-w-0 flex-1">
           <div className={`font-medium text-white truncate ${isMobile ? 'text-base' : 'text-sm lg:text-base'}`}>{stream.username}</div>
-          <div className={`text-green-400 flex items-center gap-1 ${isMobile ? 'text-sm' : 'text-xs lg:text-sm'}`}>
-            <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-            Live
-          </div>
         </div>
       </div>
       

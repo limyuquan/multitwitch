@@ -39,7 +39,7 @@ export function getThemeButtonClass(variant: 'primary' | 'secondary' | 'ghost' =
 /**
  * Get theme-aware background class
  */
-export function getThemeBackgroundClass(opacity: number = 100) {
+export function getThemeBackgroundClass(opacity = 100) {
   if (opacity === 100) {
     return "bg-theme-gradient";
   }
@@ -112,9 +112,9 @@ function convertTailwindGradientToCSS(gradientClass: string): string {
   else if (gradientClass.includes('gradient-to-b')) direction = 'to bottom';
 
   // Extract colors
-  const fromMatch = gradientClass.match(/from-([a-z]+-\d+)/);
-  const viaMatch = gradientClass.match(/via-([a-z]+-\d+)/);
-  const toMatch = gradientClass.match(/to-([a-z]+-\d+)/);
+  const fromMatch = /from-([a-z]+-\d+)/.exec(gradientClass);
+  const viaMatch = /via-([a-z]+-\d+)/.exec(gradientClass);
+  const toMatch = /to-([a-z]+-\d+)/.exec(gradientClass);
 
   const fromColor = fromMatch?.[1] ? colorMap[fromMatch[1]] || fromMatch[1] : '#020617';
   const viaColor = viaMatch?.[1] ? colorMap[viaMatch[1]] || viaMatch[1] : null;

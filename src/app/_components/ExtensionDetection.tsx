@@ -67,7 +67,7 @@ export function ExtensionDetection({ onDismiss }: ExtensionDetectionProps) {
         if ((window as any).addEventListener) {
           // This is a heuristic check - 7TV extensions typically listen for specific messages
           const messageListeners = (window as any).__messageListeners || [];
-          if (messageListeners.some((listener: any) => listener.includes && listener.includes('7tv'))) {
+          if (messageListeners.some((listener: any) => listener.includes?.('7tv'))) {
             return { detected: true, method: 'message-listeners' };
           }
         }

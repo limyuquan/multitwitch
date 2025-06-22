@@ -111,8 +111,8 @@ export function launchEmojiConfetti(emoji: string, colors: string[], options: Pa
  */
 export function launchContinuousConfetti(
   colors: string[], 
-  duration: number = 3000, 
-  interval: number = 300
+  duration = 3000, 
+  interval = 300
 ): () => void {
   if (prefersReducedMotion()) return () => {};
 

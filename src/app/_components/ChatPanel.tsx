@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import type { StreamConfig } from "./MultiTwitchViewer";
 import { useTheme } from "~/contexts/ThemeContext";
+import { ChatDisclaimer } from "./ChatDisclaimer";
 
 interface ChatPanelProps {
   streams: StreamConfig[];
@@ -30,6 +31,8 @@ export function ChatPanel({
   const [resizeStartWidth, setResizeStartWidth] = useState(0);
   const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
   const [isChatCollapsed, setIsChatCollapsed] = useState(false);
+  const [showDisclaimer, setShowDisclaimer] = useState(false);
+  const [hasShownDisclaimer, setHasShownDisclaimer] = useState(false);
 
   // Constants for resize limits
   const MIN_WIDTH = 300; // Minimum chat panel width
@@ -41,6 +44,10 @@ export function ChatPanel({
 
   const toggleChatCollapse = useCallback(() => {
     setIsChatCollapsed(prev => !prev);
+  }, []);
+
+  const handleDisclaimerClose = useCallback(() => {
+    setShowDisclaimer(false);
   }, []);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -92,6 +99,16 @@ export function ChatPanel({
       };
     }
   }, [isResizing, handleMouseMove, handleMouseUp]);
+
+  // Handle user-initiated stream change
+  const handleUserStreamChange = useCallback((username: string) => {
+    // Show disclaimer only the first time user manually changes to a different stream
+    if (streams.length > 1 && username !== activeStreamUsername && !hasShownDisclaimer) {
+      setShowDisclaimer(true);
+      setHasShownDisclaimer(true);
+    }
+    onStreamChange(username);
+  }, [activeStreamUsername, onStreamChange, streams.length, hasShownDisclaimer]);
 
   const getParentDomain = () => {
     if (typeof window !== "undefined") {
@@ -277,6 +294,13 @@ export function ChatPanel({
         </div>
       )}
 
+      {/* Chat Disclaimer */}
+      <ChatDisclaimer
+        isVisible={showDisclaimer}
+        onClose={handleDisclaimerClose}
+        autoCloseDelay={6000} // 6 seconds
+      />
+
       {/* Chat Content */}
       <div 
         className={`flex flex-col flex-1 overflow-hidden transition-opacity duration-300 ${
@@ -386,7 +410,7 @@ export function ChatPanel({
                       <div className="relative mt-2">
                         <select
                           value={activeStreamUsername}
-                          onChange={(e) => onStreamChange(e.target.value)}
+                          onChange={(e) => handleUserStreamChange(e.target.value)}
                           className="w-full appearance-none glass-theme rounded-xl px-4 py-3.5 text-white text-sm font-medium focus:outline-none transition-all duration-300 cursor-pointer shadow-lg"
                           style={{
                             backgroundColor: 'color-mix(in srgb, var(--theme-primary) 8%, #1e293b)',
@@ -470,7 +494,7 @@ export function ChatPanel({
                 <div className="relative">
                   <select
                     value={activeStreamUsername}
-                    onChange={(e) => onStreamChange(e.target.value)}
+                    onChange={(e) => handleUserStreamChange(e.target.value)}
                     className="w-full appearance-none glass-theme rounded-lg px-3 py-2 text-white text-sm font-medium focus:outline-none transition-all duration-300 cursor-pointer shadow-lg"
                     style={{
                       backgroundColor: 'color-mix(in srgb, var(--theme-primary) 8%, #1e293b)',

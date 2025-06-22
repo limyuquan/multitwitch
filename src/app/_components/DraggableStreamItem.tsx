@@ -85,7 +85,7 @@ export function DraggableStreamItem({
       {/* Stream label - always visible */}
       <div className="absolute top-3 left-3 z-10 bg-gradient-to-r from-black/80 to-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full text-sm font-medium text-white shadow-lg">
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+          <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
           {stream.username}
         </div>
       </div>

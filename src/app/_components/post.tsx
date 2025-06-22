@@ -18,11 +18,7 @@ export function LatestPost() {
 
   return (
     <div className="w-full max-w-xs">
-      {latestPost ? (
-        <p className="truncate">Your most recent post: {latestPost.name}</p>
-      ) : (
-        <p>You have no posts yet.</p>
-      )}
+      <p>Database has been removed. This is a demo component.</p>
       <form
         onSubmit={(e) => {
           e.preventDefault();
