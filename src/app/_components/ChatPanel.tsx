@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import type { StreamConfig } from "./MultiTwitchViewer";
 import { useTheme } from "~/contexts/ThemeContext";
 import { ChatDisclaimer } from "./ChatDisclaimer";
+import { api } from "~/trpc/react";
 
 interface ChatPanelProps {
   streams: StreamConfig[];
@@ -12,6 +13,104 @@ interface ChatPanelProps {
   width: number;
   onWidthChange: (width: number) => void;
   isMobile?: boolean;
+}
+
+// Component to show live/offline status for single stream
+interface SingleStreamStatusProps {
+  activeStreamUsername: string;
+}
+
+function SingleStreamStatus({ activeStreamUsername }: SingleStreamStatusProps) {
+  const { data: streamStatus, isLoading } = api.twitch.getStreamStatus.useQuery(
+    { username: activeStreamUsername.toLowerCase() },
+    {
+      enabled: !!activeStreamUsername,
+      staleTime: 1 * 60 * 1000, // 1 minute
+      gcTime: 2 * 60 * 1000, // 2 minutes
+      refetchInterval: 2 * 60 * 1000, // Refetch every 2 minutes
+    }
+  );
+
+  if (isLoading) {
+    return (
+      <div 
+        className="flex items-center justify-between p-4 glass-theme rounded-xl shadow-lg"
+        style={{
+          backgroundColor: 'color-mix(in srgb, var(--theme-primary) 8%, #1e293b)',
+          borderColor: 'color-mix(in srgb, var(--theme-primary) 25%, transparent)'
+        }}
+      >
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <div 
+              className="w-3 h-3 rounded-full shadow-lg bg-gray-500 animate-pulse"
+            ></div>
+          </div>
+          <span className="text-sm font-semibold text-slate-100">{activeStreamUsername}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 bg-gray-500 rounded-full animate-pulse"></div>
+          <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Checking...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (streamStatus?.isLive) {
+    return (
+      <div 
+        className="flex items-center justify-between p-4 glass-theme rounded-xl shadow-lg"
+        style={{
+          backgroundColor: 'color-mix(in srgb, var(--theme-primary) 8%, #1e293b)',
+          borderColor: 'color-mix(in srgb, var(--theme-primary) 25%, transparent)'
+        }}
+      >
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <div 
+              className="w-3 h-3 rounded-full shadow-lg"
+              style={{
+                backgroundColor: 'var(--theme-accent)',
+                boxShadow: `0 4px 14px color-mix(in srgb, var(--theme-accent) 30%, transparent)`
+              }}
+            ></div>
+            <div 
+              className="absolute inset-0 w-3 h-3 rounded-full animate-ping opacity-60"
+              style={{
+                backgroundColor: 'var(--theme-accent)'
+              }}
+            ></div>
+          </div>
+          <span className="text-sm font-semibold text-slate-100">{activeStreamUsername}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+          <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">LIVE</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Offline state
+  return (
+    <div 
+      className="flex items-center justify-between p-4 glass-theme rounded-xl shadow-lg"
+      style={{
+        backgroundColor: 'color-mix(in srgb, var(--theme-primary) 8%, #1e293b)',
+        borderColor: 'color-mix(in srgb, var(--theme-primary) 25%, transparent)'
+      }}
+    >
+      <div className="flex items-center gap-3">
+        <div className="relative">
+          <div className="w-3 h-3 rounded-full shadow-lg bg-gray-500 opacity-50"></div>
+        </div>
+        <span className="text-sm font-semibold text-slate-100">{activeStreamUsername}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-gray-500 font-bold uppercase tracking-wider">Offline</span>
+      </div>
+    </div>
+  );
 }
 
 export function ChatPanel({ 
@@ -453,36 +552,7 @@ export function ChatPanel({
                   )}
 
                   {streams.length === 1 && (
-                    <div 
-                      className="flex items-center justify-between p-4 glass-theme rounded-xl shadow-lg"
-                      style={{
-                        backgroundColor: 'color-mix(in srgb, var(--theme-primary) 8%, #1e293b)',
-                        borderColor: 'color-mix(in srgb, var(--theme-primary) 25%, transparent)'
-                      }}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="relative">
-                          <div 
-                            className="w-3 h-3 rounded-full shadow-lg"
-                            style={{
-                              backgroundColor: 'var(--theme-accent)',
-                              boxShadow: `0 4px 14px color-mix(in srgb, var(--theme-accent) 30%, transparent)`
-                            }}
-                          ></div>
-                          <div 
-                            className="absolute inset-0 w-3 h-3 rounded-full animate-ping opacity-60"
-                            style={{
-                              backgroundColor: 'var(--theme-accent)'
-                            }}
-                          ></div>
-                        </div>
-                        <span className="text-sm font-semibold text-slate-100">{activeStreamUsername}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                        <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">LIVE</span>
-                      </div>
-                    </div>
+                    <SingleStreamStatus activeStreamUsername={activeStreamUsername} />
                   )}
                 </div>
               </div>

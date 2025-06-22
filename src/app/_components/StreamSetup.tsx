@@ -4,9 +4,57 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import type { StreamConfig } from "./MultiTwitchViewer";
 import { AutocompleteInput } from "./AutocompleteInput";
+import { TwitchProfileImage } from "./TwitchProfileImage";
+import { api } from "~/trpc/react";
+import { showToast } from "./ModernToast";
 
 interface StreamSetupProps {
   onStreamsSetup: (streams: StreamConfig[]) => void;
+}
+
+interface StreamStatusProps {
+  username: string;
+}
+
+function StreamStatus({ username }: StreamStatusProps) {
+  const { data: streamStatus, isLoading } = api.twitch.getStreamStatus.useQuery(
+    { username: username.toLowerCase() },
+    {
+      enabled: !!username,
+      staleTime: 1 * 60 * 1000, // 1 minute
+      gcTime: 2 * 60 * 1000, // 2 minutes
+      refetchInterval: 2 * 60 * 1000, // Refetch every 2 minutes
+    }
+  );
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2 mt-1">
+        <div className="w-2 h-2 bg-gray-500 rounded-full animate-pulse"></div>
+        <div className="text-[#6b6b6b] lg:text-[#71717a] text-sm font-medium">
+          Checking...
+        </div>
+      </div>
+    );
+  }
+
+  if (streamStatus?.isLive) {
+    return (
+      <div className="flex items-center gap-2 mt-1">
+        <div className="text-red-400 text-sm font-medium">
+          Live • {streamStatus.streamInfo?.gameName || 'Just Chatting'}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2 mt-1">
+      <div className="text-[#6b6b6b] lg:text-[#71717a] text-sm font-medium">
+        Offline
+      </div>
+    </div>
+  );
 }
 
 export function StreamSetup({ onStreamsSetup }: StreamSetupProps) {
@@ -123,8 +171,31 @@ export function StreamSetup({ onStreamsSetup }: StreamSetupProps) {
     }
   };
 
-  const handleAddStream = () => {
-    addStreamByValue(inputValue);
+  const handleValidationResult = (username: string, isValid: boolean) => {
+    if (!isValid) {
+      showToast(`User "${username}" not found on Twitch`, "error", 4000);
+    }
+  };
+
+  const utils = api.useUtils();
+
+  const handleAddStream = async () => {
+    const trimmedValue = inputValue.trim();
+    if (!trimmedValue) return;
+    
+    // Validate user exists before adding
+    try {
+      const result = await utils.twitch.validateUser.fetch({ username: trimmedValue.toLowerCase() });
+      
+      if (result?.exists) {
+        addStreamByValue(trimmedValue);
+      } else {
+        handleValidationResult(trimmedValue, false);
+      }
+    } catch (error) {
+      console.error('Error validating user:', error);
+      handleValidationResult(trimmedValue, false);
+    }
   };
 
   const handleRemoveStream = (index: number) => {
@@ -402,11 +473,11 @@ export function StreamSetup({ onStreamsSetup }: StreamSetupProps) {
                         >
                           <div className="absolute inset-0 bg-gradient-to-r from-[#9146ff]/5 to-[#772ce8]/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                           
-                          <div className="relative w-10 h-10 rounded-xl overflow-hidden shadow-lg bg-gradient-to-br from-[#9146ff] via-[#8b5cf6] to-[#772ce8] flex items-center justify-center flex-shrink-0">
-                            <div className="text-sm font-black text-white">
-                              {streamer[0]?.toUpperCase()}
-                            </div>
-                          </div>
+                          <TwitchProfileImage 
+                            username={streamer} 
+                            size={40}
+                            className="flex-shrink-0"
+                          />
                           
                           <div className="flex-1 min-w-0 text-left">
                             <div className={`font-semibold text-sm truncate ${
@@ -414,9 +485,15 @@ export function StreamSetup({ onStreamsSetup }: StreamSetupProps) {
                             } transition-all duration-300`}>
                               {streamer}
                             </div>
-                            <div className="text-xs text-[#71717a] mt-0.5">
-                              {streamList.includes(streamer) ? 'Added' : 'Click to add'}
-                            </div>
+                            {streamList.includes(streamer) ? (
+                              <div className="text-xs text-[#22c55e] mt-0.5">
+                                Added
+                              </div>
+                            ) : (
+                              <div className="text-xs mt-0.5">
+                                <StreamStatus username={streamer} />
+                              </div>
+                            )}
                           </div>
                           
                           {streamList.includes(streamer) ? (
@@ -469,11 +546,13 @@ export function StreamSetup({ onStreamsSetup }: StreamSetupProps) {
                           onChange={setInputValue}
                           onKeyPress={handleKeyPress}
                           onSelect={addStreamByValue}
+                          onValidationResult={handleValidationResult}
                           placeholder="Search streamers..."
                           suggestions={previouslyWatched.filter(streamer => 
                             !streamList.includes(streamer.toLowerCase())
                           )}
                           maxSuggestions={6}
+                          showEnhancedSuggestions={true}
                           className="relative w-full px-6 py-5 lg:px-6 lg:py-5 bg-[#1a1a1a] lg:bg-[#0e0e10] border border-[#2a2a2a] lg:border-[#3f3f46]/60 rounded-3xl lg:rounded-2xl text-white placeholder-[#6b6b6b] lg:placeholder-[#71717a] focus:outline-none focus:border-[#9146ff] focus:bg-[#1c1c1c] lg:focus:bg-[#0e0e10] focus:ring-0 lg:focus:ring-4 lg:focus:ring-[#9146ff]/20 transition-all duration-300 text-lg lg:text-lg font-medium hover:border-[#3a3a3a] lg:hover:border-[#52525b] hover:bg-[#1c1c1c] lg:hover:bg-[#0e0e10] group-hover:shadow-lg group-hover:shadow-[#9146ff]/10 cursor-text"
                         />
                         {/* Input icon */}
@@ -525,27 +604,20 @@ export function StreamSetup({ onStreamsSetup }: StreamSetupProps) {
                             <div className="absolute inset-0 bg-gradient-to-r from-[#9146ff]/5 to-[#772ce8]/5 rounded-3xl lg:rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                             
                             <div className="flex items-center gap-4 relative z-10 min-w-0 flex-1">
-                              <div className="relative flex-shrink-0">
-                                <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-2xl lg:rounded-2xl overflow-hidden shadow-lg lg:shadow-xl transform group-hover:scale-110 transition-transform duration-300 bg-gradient-to-br from-[#9146ff] via-[#8b5cf6] to-[#772ce8] flex items-center justify-center">
-                                  <div className="w-full h-full flex items-center justify-center text-lg lg:text-xl font-black text-white">
-                                    {stream[0]?.toUpperCase()}
-                                  </div>
-                                </div>
+                              <div className="relative flex-shrink-0 transform group-hover:scale-110 transition-transform duration-300">
+                                <TwitchProfileImage 
+                                  username={stream} 
+                                  size={isDesktop ? 56 : 48}
+                                  className="shadow-lg lg:shadow-xl"
+                                />
                                 <div className="absolute -inset-2 bg-gradient-to-r from-[#9146ff]/40 to-[#772ce8]/40 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500 hidden lg:block" />
-                                {/* Online indicator */}
-                                <div className="absolute -top-1 -right-1 w-4 h-4 bg-purple-500 border-2 border-[#1a1a1a] lg:border-[#0e0e10] rounded-full animate-pulse"></div>
                               </div>
                               
                               <div className="flex-1 min-w-0">
                                 <div className="font-bold text-lg lg:text-xl text-white group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-[#9146ff] group-hover:to-[#772ce8] group-hover:bg-clip-text transition-all duration-300 truncate">
                                   {stream}
                                 </div>
-                                <div className="flex items-center gap-2 mt-1">
-                                  <div className="text-[#6b6b6b] lg:text-[#71717a] text-sm font-medium">
-                                    Ready to watch
-                                  </div>
-                                  <div className="w-1 h-1 bg-[#6b6b6b] rounded-full"></div>
-                                </div>
+                                <StreamStatus username={stream} />
                               </div>
                             </div>
                             

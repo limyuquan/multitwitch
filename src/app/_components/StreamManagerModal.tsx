@@ -3,6 +3,9 @@
 import { useState, useRef, useEffect } from "react";
 import type { StreamConfig } from "./MultiTwitchViewer";
 import { AutocompleteInput } from "./AutocompleteInput";
+import { TwitchProfileImage } from "./TwitchProfileImage";
+import { api } from "~/trpc/react";
+import { showToast } from "./ModernToast";
 
 interface StreamManagerModalProps {
   isOpen: boolean;
@@ -129,8 +132,31 @@ export function StreamManagerModal({
     }, 2000);
   };
 
-  const handleAddStream = () => {
-    addStreamByValue(inputValue);
+  const handleValidationResult = (username: string, isValid: boolean) => {
+    if (!isValid) {
+      showToast(`User "${username}" not found on Twitch`, "error", 4000);
+    }
+  };
+
+  const utils = api.useUtils();
+
+  const handleAddStream = async () => {
+    const trimmedValue = inputValue.trim();
+    if (!trimmedValue) return;
+    
+    // Validate user exists before adding
+    try {
+      const result = await utils.twitch.validateUser.fetch({ username: trimmedValue.toLowerCase() });
+      
+      if (result?.exists) {
+        addStreamByValue(trimmedValue);
+      } else {
+        handleValidationResult(trimmedValue, false);
+      }
+    } catch (error) {
+      console.error('Error validating user:', error);
+      handleValidationResult(trimmedValue, false);
+    }
   };
 
   const handleRemoveStream = (streamToRemove: StreamConfig) => {
@@ -192,10 +218,12 @@ export function StreamManagerModal({
                   onChange={setInputValue}
                   onKeyPress={handleKeyPress}
                   onSelect={addStreamByValue}
+                  onValidationResult={handleValidationResult}
                   placeholder="Enter Twitch username"
                   disabled={isSubmitting}
                   suggestions={previouslyWatchedSuggestions}
                   maxSuggestions={5}
+                  showEnhancedSuggestions={true}
                   className="w-full lg:flex-1 px-4 py-3 lg:py-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-white placeholder-gray-400 disabled:opacity-50 text-base lg:text-sm"
                 />
                 <button
@@ -309,19 +337,22 @@ interface StreamItemProps {
   isMobile?: boolean;
 }
 
+
+
 function StreamItem({ stream, onRemove, canRemove, isMobile = false }: StreamItemProps) {
   return (
     <div className={`flex items-center justify-between bg-gray-700 rounded-lg group hover:bg-gray-650 transition-colors ${
       isMobile ? 'p-4' : 'p-4'
     }`}>
       <div className="flex items-center gap-3 flex-1 min-w-0">
-        {/* Streamer Avatar */}
-        <div className={`${isMobile ? 'w-12 h-12' : 'w-10 h-10'} bg-purple-600 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0`}>
-          {stream.username[0]?.toUpperCase()}
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className={`font-medium text-white truncate ${isMobile ? 'text-base' : 'text-sm lg:text-base'}`}>{stream.username}</div>
-        </div>
+        {/* Twitch Profile Image with Live Status */}
+        <TwitchProfileImage 
+          username={stream.username}
+          size={isMobile ? 48 : 40}
+          showDisplayName={true}
+          showLiveStatus={true}
+          className="flex-shrink-0"
+        />
       </div>
       
       <div className="flex items-center gap-2 flex-shrink-0">
