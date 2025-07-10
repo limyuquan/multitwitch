@@ -1,6 +1,86 @@
 {
   "groups": [
     {
+      "id": "amp",
+      "name": "AMP",
+      "description": "AMP",
+      "members": [
+        "kaicenat",
+        "agent00",
+        "davis",
+        "fanum",
+        "duke",
+        "chrisnxtdoor"
+      ],
+      "matchType": "all",
+      "theme": {
+        "name": "amp-theme",
+        "colors": {
+          "primary": "#fbbf24",
+          "secondary": "#000000",
+          "accent": "#f9fafb",
+          "background": "from-yellow-400 via-black to-gray-900"
+        },
+        "headerIcon": "zap",
+        "description": "AMP Theme",
+        "customIcon": "/theme-icons/amp.webp"
+      }
+    },
+    {
+      "id": "sentinels",
+      "name": "Sentinels",
+      "description": "Sentinels esports team and content creators",
+      "members": [
+        "tarik",
+        "tenz",
+        "zekken",
+        "johnqtcs",
+        "zellsis",
+        "bangzerra",
+        "n4rrate",
+        "reduxxval"
+      ],
+      "matchType": "multiple",
+      "theme": {
+        "name": "sentinels-theme",
+        "colors": {
+          "primary": "#dc2626",
+          "secondary": "#000000",
+          "accent": "#ffffff",
+          "background": "from-red-600 via-black to-red-950"
+        },
+        "headerIcon": "zap",
+        "description": "Sentinels Theme",
+        "customIcon": "/theme-icons/sentinels.png"
+      }
+    },
+    {
+      "id": "paper-rex",
+      "name": "Paper Rex",
+      "description": "Paper Rex (PRX) esports team",
+      "members": [
+        "prxd4v41",
+        "prxf0rsaken",
+        "prxmindfreak",
+        "smthlikeyou11",
+        "jingggxd",
+        "patmenvlr"
+      ],
+      "matchType": "multiple",
+      "theme": {
+        "name": "paper-rex-theme",
+        "colors": {
+          "primary": "#ff1493",
+          "secondary": "#8b5cf6",
+          "accent": "#3b82f6",
+          "background": "from-pink-500 via-purple-600 to-blue-600"
+        },
+        "headerIcon": "zap",
+        "description": "Paper Rex Theme",
+        "customIcon": "/theme-icons/prx.png"
+      }
+    },
+    {
       "id": "jakura",
       "name": "J A K U R A",
       "description": "JAKURA",
@@ -79,6 +159,13 @@
       "name": "OTV & Friends",
       "description": "OfflineTV and associated streamers",
       "members": [
+        "quarterjade",
+        "sydeon",
+        "scarra",
+        "michaelreeves",
+        "yvonnie",
+        "brofain",
+        "masayoshi",
         "pokimane",
         "lilypichu",
         "disguisedtoast",
